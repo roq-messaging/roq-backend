@@ -12,7 +12,7 @@ var consts = {
     CONFIG_CREATE_QUEUE: 2003,
     
     MNGT_UPDATE_CONFIG: "1500",
-    BSON_CONFIG_GET_HOST_BY_QNAME: "2000",
+    BSON_CONFIG_GET_HOST_BY_QNAME: 2000,
     
     BSON_STAT_MONITOR_HOST: "Stat_Monitor_host",
     
@@ -106,10 +106,12 @@ module.exports = function setup(options, imports, register) {
         sockReq.connect("tcp://"+consts.CONFIG_SERVER);
         
         
-        var msgReqSubscribe = createMessage(
-            consts.BSON_CONFIG_GET_HOST_BY_QNAME,[
-            createMessagePart(consts.MESSAGE_QName,queueName)
-        ]);
+        var msgReqSubscribe = {};
+        msgReqSubscribe[consts.MESSAGE_CMD] = consts.BSON_CONFIG_GET_HOST_BY_QNAME;
+        msgReqSubscribe[consts.MESSAGE_QNAME] = queueName;
+        
+        msgReqSubscribe = bsonParser.serialize(msgReqSubscribe);
+        
         // send request for config
         sockReq.send(msgReqSubscribe);
         
@@ -117,6 +119,7 @@ module.exports = function setup(options, imports, register) {
         sockReq.on('message',function(){
             //var bsonDConf =             
             console.log("received dconf:",arguments);
+            
             //socketQueueStats[queue] = sockSub;
         });
     }
@@ -143,14 +146,14 @@ module.exports = function setup(options, imports, register) {
         // every newly detected queue
     }   
     
-    var removeQueue = function(queueName,host){
-        sendGCMrequest({ "CMD" : consts.CONFIG_REMOVE_QUEUE , "QName" : queueName, "Host" : host});
+    var removeQueue = function(queueName){
+        sendGCMrequest({ MESSAGE_CMD : consts.CONFIG_REMOVE_QUEUE , MESSAGE_QNAME : queueName});
     }         
-    var stopQueue = function(queueName,host){
-        sendGCMrequest({ "CMD" : consts.CONFIG_STOP_QUEUE , "QName" : queueName, "Host" : host});
+    var stopQueue = function(queueName){
+        sendGCMrequest({ MESSAGE_CMD : consts.CONFIG_STOP_QUEUE , MESSAGE_QNAME : queueName});
     }     
     var createQueue = function(queueName,host){
-        sendGCMrequest({ "CMD" : consts.CONFIG_CREATE_QUEUE , "QName" : queueName, "Host" : host});
+        sendGCMrequest({ MESSAGE_CMD : consts.CONFIG_CREATE_QUEUE , MESSAGE_QNAME: queueName, MESSAGE_HOST : host});
     } 
     
     var sendGCMrequest = function(request){
