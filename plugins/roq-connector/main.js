@@ -2,13 +2,15 @@ zmq = require("zmq");
 bsonParser = require("bson").BSONPure.BSON;
 
 var consts = {
-    // common with java codebase
+    // common with java codebase (?)
+    // URLs here should be extracted, obviously
     GCM_SERVER: "127.0.0.1:5005",
-    GCM_SERVER_CMD: "127.0.0.1:5003", // ?
-    CONFIG_SERVER: "127.0.0.1:5000",
+    GCM_SERVER_CMD: "127.0.0.1:5003", 
+    CONFIG_SERVER: "127.0.1.1:5000",
     
     CONFIG_REMOVE_QUEUE: 2001,
     CONFIG_STOP_QUEUE: 2002,
+    CONFIG_START_QUEUE: 2005,
     CONFIG_CREATE_QUEUE: 2003,
     
     MNGT_UPDATE_CONFIG: "1500",
@@ -34,6 +36,7 @@ var consts = {
 module.exports = function setup(options, imports, register) {
 
     var socketGCM; // Global Configuration Manager
+    var sockQueueStats;
     var socketQueueStats = {};
     var listenersGCM = [];
 
@@ -48,10 +51,21 @@ module.exports = function setup(options, imports, register) {
                 autoSubscribeQueuesStatistics: autoSubscribeQueuesStatistics,
                 removeQueue: removeQueue,
                 stopQueue: stopQueue,
+                startQueue: stopQueue,
                 createQueue: createQueue,
-                consts: consts,
+                closeSockets: closeSockets,
+                //consts: consts,
             }
         });
+    }
+    
+    var closeSockets = function(){
+        if(socketGCM) 
+            socketGCM.close();
+        if(sockQueueStats) 
+            sockQueueStats.close();
+        socketGCM = null;
+        sockQueueStats = null;
     }
     
     var initGCM = function(){
@@ -102,8 +116,8 @@ module.exports = function setup(options, imports, register) {
         // monitorStatServer = (String) dConfiguration.get(RoQConstant.BSON_STAT_MONITOR_HOST);
         // subscribe same way than in initGCM except monitorStatServer is a full URL
         
-        var sockReq = zmq.socket('req');
-        sockReq.connect("tcp://"+consts.CONFIG_SERVER);
+        sockQueueStats = zmq.socket('req');
+        sockQueueStats.connect("tcp://"+consts.CONFIG_SERVER);
         
         
         var msgReqSubscribe = {};
@@ -113,13 +127,13 @@ module.exports = function setup(options, imports, register) {
         msgReqSubscribe = bsonParser.serialize(msgReqSubscribe);
         
         // send request for config
-        sockReq.send(msgReqSubscribe);
+        sockQueueStats.send(msgReqSubscribe);
         
         // get answer
-        sockReq.on('message',function(){
+        sockQueueStats.on('message',function(){
             //var bsonDConf =             
             console.log("received dconf:",arguments);
-            
+            listener(arguments);
             //socketQueueStats[queue] = sockSub;
         });
     }
@@ -146,17 +160,46 @@ module.exports = function setup(options, imports, register) {
         // every newly detected queue
     }   
     
-    var removeQueue = function(queueName){
-        sendGCMrequest({ MESSAGE_CMD : consts.CONFIG_REMOVE_QUEUE , MESSAGE_QNAME : queueName});
+    var removeQueue = function(queueName,callback){
+        sendGCMrequest(makeMessage(
+                    consts.MESSAGE_CMD,consts.CONFIG_REMOVE_QUEUE,
+                    consts.MESSAGE_QNAME,queueName)
+                    ,callback);
     }         
-    var stopQueue = function(queueName){
-        sendGCMrequest({ MESSAGE_CMD : consts.CONFIG_STOP_QUEUE , MESSAGE_QNAME : queueName});
-    }     
-    var createQueue = function(queueName,host){
-        sendGCMrequest({ MESSAGE_CMD : consts.CONFIG_CREATE_QUEUE , MESSAGE_QNAME: queueName, MESSAGE_HOST : host});
+    var stopQueue = function(queueName,callback){
+        sendGCMrequest(makeMessage(
+                    consts.MESSAGE_CMD,consts.CONFIG_REMOVE_QUEUE,
+                    consts.MESSAGE_QNAME,queueName)
+                    ,callback);
+    }           
+    var startQueue = function(queueName,callback){
+        sendGCMrequest(makeMessage(
+                    consts.MESSAGE_CMD,consts.CONFIG_REMOVE_QUEUE,
+                    consts.MESSAGE_QNAME,queueName)
+                    ,callback);
+    }    
+    var createQueue = function(queueName,host,callback){
+        sendGCMrequest(makeMessage(
+                    consts.MESSAGE_CMD,consts.CONFIG_REMOVE_QUEUE,
+                    consts.MESSAGE_QNAME,queueName,
+                    consts.MESSAGE_HOST,host),callback);
     } 
     
-    var sendGCMrequest = function(request){
+    // even arguments will be used as keys, odd one will be used as values
+    var makeMessage = function(){
+        if( 0 != arguments.length % 2){
+            throw "makeMessage require an even number of arguments.";
+        }
+        var msg = {};
+        var len = arguments.length/2;
+        for(var i=0; i<len; i++){
+            msg[arguments[i*2]] = arguments[i*2+1];
+        }
+//        console.log("message",msg);
+        return msg;
+    }
+    
+    var sendGCMrequest = function(request,callback){
         var sock = zmq.socket('req');
         sock.connect("tcp://"+consts.GCM_SERVER_CMD);
 
@@ -170,14 +213,22 @@ module.exports = function setup(options, imports, register) {
                     var answer = bsonParser.deserialize(arguments[0]);
                     if( 0 == answer.RESULT){
                         console.log("request sent successfully. Comment: "+answer.COMMENT);
+                        if('function' == typeof(callback)) 
+                            callback(null);
                     }else{
-                        console.log("failed to send request.");
+                        console.log("failed to send request. "+answer.COMMENT);
+                        if('function' == typeof(callback)) 
+                            callback({code:answer.RESULT,message:answer.COMMENT});
                     }
                 }else{
                     console.log("received empty answer.");
+                    if('function' == typeof(callback)) 
+                            callback({code:-1,message:"received empty answer"});
                 }
-                    
+            sock.close();
         });
+        
+        
     }
     
     
