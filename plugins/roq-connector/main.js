@@ -16,6 +16,7 @@ var consts = {
     MNGT_UPDATE_CONFIG: "1500",
     BSON_CONFIG_GET_HOST_BY_QNAME: 2000,
     
+    BSON_MONITOR_HOST: "Monitor_host",
     BSON_STAT_MONITOR_HOST: "Stat_Monitor_host",
     
     // defined only here
@@ -36,8 +37,8 @@ var consts = {
 module.exports = function setup(options, imports, register) {
 
     var socketGCM; // Global Configuration Manager
-    var sockQueueStats;
     var socketQueueStats = {};
+    var queuesWithStatSocket = [];
     var listenersGCM = [];
 
     var init = function(){
@@ -62,10 +63,9 @@ module.exports = function setup(options, imports, register) {
     var closeSockets = function(){
         if(socketGCM) 
             socketGCM.close();
-        if(sockQueueStats) 
-            sockQueueStats.close();
-        socketGCM = null;
-        sockQueueStats = null;
+        for(var i in queuesWithStatSocket){
+            socketQueueStats[queuesWithStatSocket[i]].socket.close();
+        }
     }
     
     var initGCM = function(){
@@ -110,14 +110,15 @@ module.exports = function setup(options, imports, register) {
     
     // "Statistic subscription"
     var subscribeQueueStatistics = function(queueName, listener){
-        // TODO
-        // request: "CMD", RoQConstant.BSON_CONFIG_GET_HOST_BY_QNAME
-        // answer: dConfiguration
-        // monitorStatServer = (String) dConfiguration.get(RoQConstant.BSON_STAT_MONITOR_HOST);
-        // subscribe same way than in initGCM except monitorStatServer is a full URL
+        if( 0 <= queuesWithStatSocket.indexOf(queueName)){
+            socketQueueStats[queueName].listeners.push(listener);
+            return;
+        }
+        socketQueueStats[queueName] = {};  
+        socketQueueStats[queueName].listeners = [listener];  
         
-        sockQueueStats = zmq.socket('req');
-        sockQueueStats.connect("tcp://"+consts.CONFIG_SERVER);
+        var sock = zmq.socket('req');
+        sock.connect("tcp://"+consts.CONFIG_SERVER);
         
         
         var msgReqSubscribe = {};
@@ -127,14 +128,40 @@ module.exports = function setup(options, imports, register) {
         msgReqSubscribe = bsonParser.serialize(msgReqSubscribe);
         
         // send request for config
-        sockQueueStats.send(msgReqSubscribe);
+        sock.send(msgReqSubscribe);
         
         // get answer
-        sockQueueStats.on('message',function(){
-            //var bsonDConf =             
-            console.log("received dconf:",arguments);
-            listener(arguments);
-            //socketQueueStats[queue] = sockSub;
+        sock.on('message',function(){
+            try{
+            var bsonDConf = bsonParser.deserialize(arguments[0]);        
+            }catch(error){
+                console.log("size:",arguments[0].length);
+                console.error("Couldn't deserialize message: ",arguments[0],". Message:",error);
+                listener("Unable to subscribe",null);
+            }
+            console.log("received dconf:",bsonDConf);
+            //listener(null,arguments);
+            var sockMonHost = zmq.socket('sub');
+            sockMonHost.connect(bsonDConf[consts.BSON_STAT_MONITOR_HOST]);
+            sockMonHost.subscribe("");
+            sockMonHost.on('message',function(){
+                console.log("Stats for "+queueName);
+                /*for(var i in arguments){
+                    console.log(i,bsonParser.deserialize(arguments[i]));
+                }*/
+                
+                for(var i in socketQueueStats[queueName].listeners){
+                    socketQueueStats[queueName].listeners[i](null,
+                    bsonParser.deserialize(arguments[0]),
+                    bsonParser.deserialize(arguments[1]),
+                    bsonParser.deserialize(arguments[2])
+                    );
+                }
+            });
+            
+            socketQueueStats[queueName].socket = sockMonHost;
+            sock.close();
+            
         });
     }
     
