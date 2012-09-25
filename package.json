@@ -11,10 +11,11 @@
         "node": "~0.6.11"
     },
     "scripts": {
-        "start": "./launcher.js orchestrator"
+        "start": "./launcher.js orchestrator",
+        "test": "./node_modules/nodeunit/bin/nodeunit test.launcher.js"
     },
     "dependencies": {
-        "zmq": "*",
+        "zmq": "~2.0",
         "bson": "*",
         "architect": "~0.1",
         "express": "~3.0",
