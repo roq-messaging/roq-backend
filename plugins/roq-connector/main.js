@@ -3,7 +3,7 @@ bsonParser = require("bson").BSONPure.BSON;
 
 var consts = {
     // common with java codebase (?)
-    // URLs here should be extracted, obviously
+    // IP here should move to some config file
     GCM_SERVER: "127.0.0.1:5005",
     GCM_SERVER_CMD: "127.0.0.1:5003", 
     CONFIG_SERVER: "127.0.1.1:5000",
@@ -168,19 +168,19 @@ module.exports = function setup(options, imports, register) {
     }         
     var stopQueue = function(queueName,callback){
         sendGCMrequest(makeMessage(
-                    consts.MESSAGE_CMD,consts.CONFIG_REMOVE_QUEUE,
+                    consts.MESSAGE_CMD,consts.CONFIG_STOP_QUEUE,
                     consts.MESSAGE_QNAME,queueName)
                     ,callback);
     }           
     var startQueue = function(queueName,callback){
         sendGCMrequest(makeMessage(
-                    consts.MESSAGE_CMD,consts.CONFIG_REMOVE_QUEUE,
+                    consts.MESSAGE_CMD,consts.CONFIG_START_QUEUE,
                     consts.MESSAGE_QNAME,queueName)
                     ,callback);
     }    
     var createQueue = function(queueName,host,callback){
         sendGCMrequest(makeMessage(
-                    consts.MESSAGE_CMD,consts.CONFIG_REMOVE_QUEUE,
+                    consts.MESSAGE_CMD,consts.CONFIG_CREATE_QUEUE,
                     consts.MESSAGE_QNAME,queueName,
                     consts.MESSAGE_HOST,host),callback);
     } 
