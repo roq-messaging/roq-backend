@@ -7,7 +7,8 @@ var configPath;
 
 var configPath = path.resolve("./config."+config+".js");
 
-
+// this has to move in config
+var hostManagerIP = "172.24.112.161";
 
 // these are tests for roq-connector only
 // TODO: find an elegant way to isolate each module's tests 
@@ -30,8 +31,10 @@ module.exports = {
         testCreateQueue: function(test){
             test.expect(2);
             var appRoqConnector = this.appRoqConnector;
-            appRoqConnector.removeQueue("CreateAQueue");
-            appRoqConnector.createQueue("CreateAQueue",'127.0.1.1',function(err){
+            // we avoid trying to remove a non-existing queue: 
+            // RoQ currently fails in this case.
+            //appRoqConnector.removeQueue("CreateAQueue");
+            appRoqConnector.createQueue("CreateAQueue",hostManagerIP,function(err){
                 test.equals(err,null,"No error when creating queue");
                 appRoqConnector.removeQueue("CreateAQueue",makeTestCallbackNoError(test,'queue operation'));
                 test.done();
@@ -40,7 +43,7 @@ module.exports = {
         
         testRemoveQueue: function(test){
             test.expect(1);
-            this.appRoqConnector.createQueue("RemoveAQueue",'127.0.1.1');
+            this.appRoqConnector.createQueue("RemoveAQueue",hostManagerIP);
             this.appRoqConnector.removeQueue("RemoveAQueue",function(err){
                 test.equals(err,null,"No error when removing queue");
                 test.done();
@@ -50,7 +53,7 @@ module.exports = {
         testStartQueue: function(test){
             test.expect(3);
             var appRoqConnector = this.appRoqConnector;
-            appRoqConnector.createQueue("StartAQueue",'127.0.1.1',makeTestCallbackNoError(test,'queue operation'));
+            appRoqConnector.createQueue("StartAQueue",hostManagerIP,makeTestCallbackNoError(test,'queue operation'));
             appRoqConnector.stopQueue("StartAQueue",makeTestCallbackNoError(test,'queue operation'));
             appRoqConnector.startQueue("StartAQueue",function(err){
                 test.equals(err,null,"No error when starting queue");
@@ -63,7 +66,7 @@ module.exports = {
         testStopQueue: function(test){
             test.expect(2);
             var appRoqConnector = this.appRoqConnector;
-            appRoqConnector.createQueue("StopAQueue",'127.0.1.1',makeTestCallbackNoError(test,'queue operation'));
+            appRoqConnector.createQueue("StopAQueue",hostManagerIP,makeTestCallbackNoError(test,'queue operation'));
             appRoqConnector.stopQueue("StopAQueue",function(err){
                 test.equals(err,null,"No error when starting queue");
                 appRoqConnector.removeQueue("StopAQueue");
@@ -89,7 +92,7 @@ module.exports = {
             
         setUp: function(callback){
            buildApp(this,function(){
-                this.appRoqConnector.createQueue("ExistingQueue",'127.0.1.1');
+                this.appRoqConnector.createQueue("ExistingQueue",hostManagerIP);
                 callback();
            });
         },
@@ -97,7 +100,7 @@ module.exports = {
         // clean up
         tearDown: function(callback){
             if(this.appRoqConnector)
-                this.appRoqConnector.removeQueue("ExistingQueue",'127.0.1.1');
+                this.appRoqConnector.removeQueue("ExistingQueue",hostManagerIP);
             destroyApp(this,callback);
         },
         
