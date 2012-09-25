@@ -132,15 +132,14 @@ module.exports = function setup(options, imports, register) {
         
         // get answer
         sock.on('message',function(){
-            try{
-            var bsonDConf = bsonParser.deserialize(arguments[0]);        
-            }catch(error){
-                console.log("size:",arguments[0].length);
-                console.error("Couldn't deserialize message: ",arguments[0],". Message:",error);
+            var bsonDConf = safeBSONread(arguments[0]);        
+            if(!bsonDConf){
                 listener("Unable to subscribe",null);
+                return;
             }
+                
             console.log("received dconf:",bsonDConf);
-            //listener(null,arguments);
+            
             var sockMonHost = zmq.socket('sub');
             sockMonHost.connect(bsonDConf[consts.BSON_STAT_MONITOR_HOST]);
             sockMonHost.subscribe("");
@@ -152,9 +151,9 @@ module.exports = function setup(options, imports, register) {
                 
                 for(var i in socketQueueStats[queueName].listeners){
                     socketQueueStats[queueName].listeners[i](null,
-                    bsonParser.deserialize(arguments[0]),
-                    bsonParser.deserialize(arguments[1]),
-                    bsonParser.deserialize(arguments[2])
+                    safeBSONread(arguments[0]),
+                    safeBSONread(arguments[1]),
+                    safeBSONread(arguments[2])
                     );
                 }
             });
@@ -163,6 +162,15 @@ module.exports = function setup(options, imports, register) {
             sock.close();
             
         });
+    }
+    
+    var safeBSONread = function(data){
+        try{
+            return bsonParser.deserialize(data);        
+        }catch(error){
+            console.error("Couldn't deserialize message: ",data,". Message:",error);
+            return null;
+        }
     }
     
     var createMessage = function(cmd,payloads){
