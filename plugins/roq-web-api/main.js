@@ -64,21 +64,21 @@ module.exports = function setup(options, imports, register) {
             console.log("roq-web-api: received cluster status",message);
         }
 
-        imports['roq-connector'].subscribeClusterStatus(receiveClusterStatus);
+        //imports['roq-connector'].subscribeClusterStatus(receiveClusterStatus);
         
-        imports['roq-connector'].createQueue('testQ6',"172.23.108.107");
+        //imports['roq-connector'].createQueue('testQ6',"172.23.108.107");
         //imports['roq-connector'].startQueue('testQ6');
         //imports['roq-connector'].removeQueue('testQ5');
         
         
-        imports['roq-connector'].subscribeQueueStatistics('testQ6',function(err,exchangeId,exchangeStats,exchangeLoad){
+        /*imports['roq-connector'].subscribeQueueStatistics('testQ6',function(err,exchangeId,exchangeStats,exchangeLoad){
            if(null != err){
                 console.error("failed to get queue statistics",err);
            }else{
                 console.log("queue statistics in web api!"); 
                 console.log(exchangeId,exchangeStats,exchangeLoad);
            }
-        });    
+        });  */  
 
     }
     
