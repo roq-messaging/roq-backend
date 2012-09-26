@@ -13,5 +13,5 @@
         }
     ],
     
-    "replaceConsole": false
+    "doNotReplaceConsole": true
 }

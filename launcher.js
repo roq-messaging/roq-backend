@@ -19,7 +19,7 @@ var logger;
 var init = function(){
     var config = getConfig(process.argv[2]);
     var logconf = ('cli' == config ? CLI_LOGGER_CONFIG : DEFAULT_LOGGER_CONFIG);
-        
+    
     log4js.configure(path.join(__dirname,logconf));
     logger = log4js.getLogger("roq.launcher");
     

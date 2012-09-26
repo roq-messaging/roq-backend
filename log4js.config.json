@@ -19,5 +19,5 @@
         }
     ],
     
-    "replaceConsole": true
+    "doNotReplaceConsole": false
 }
