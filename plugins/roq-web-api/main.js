@@ -4,7 +4,7 @@ require('express-namespace');
 module.exports = function setup(options, imports, register) {
 
     var appServer;
-
+    var orchestrator = imports['roq-orchestrator'];
     
     var init = function(){
         startServer(appServer);
@@ -30,7 +30,7 @@ module.exports = function setup(options, imports, register) {
         app.namespace('/queues',function(){
             
             app.get('/list',function(req,res){
-                res.send('queues list');
+                res.send('queues list '+orchestrator.listQueues());
             });
             
             app.namespace('/:id',function(){
@@ -66,8 +66,8 @@ module.exports = function setup(options, imports, register) {
 
         imports['roq-connector'].subscribeClusterStatus(receiveClusterStatus);
         
-        //imports['roq-connector'].createQueue('testQ6',"172.24.112.161");
-        //imports['roq-connector'].startQueue('testQ5');
+        imports['roq-connector'].createQueue('testQ6',"172.23.108.107");
+        //imports['roq-connector'].startQueue('testQ6');
         //imports['roq-connector'].removeQueue('testQ5');
         
         
