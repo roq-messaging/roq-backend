@@ -4,14 +4,14 @@ bsonParser = require("bson").BSONPure.BSON;
 var consts = {
     // common with java codebase (?)
     // IP here should move to some config file
-    GCM_SERVER: "127.0.0.1:5005",
-    GCM_SERVER_CMD: "127.0.0.1:5003", 
-    CONFIG_SERVER: "127.0.1.1:5000",
+    GCM_SERVER_CONFIG: ":5005",
+    GCM_SERVER_CMD: ":5003", 
+    GCM_SERVER_STATS: ":5000",
     
     CONFIG_REMOVE_QUEUE: 2001,
     CONFIG_STOP_QUEUE: 2002,
-    CONFIG_START_QUEUE: 2005,
     CONFIG_CREATE_QUEUE: 2003,
+    CONFIG_START_QUEUE: 2005,
     
     MNGT_UPDATE_CONFIG: "1500",
     BSON_CONFIG_GET_HOST_BY_QNAME: 2000,
@@ -36,23 +36,22 @@ var consts = {
 
 module.exports = function setup(options, imports, register) {
 
+    var gcmAddress = "127.0.0.1"; // sensible default
     var socketGCM; // Global Configuration Manager
     var socketQueueStats = {};
     var queuesWithStatSocket = [];
     var listenersGCM = [];
 
     var init = function(){
-        initGCM(); // this is for the update_config messages. Should be renamed(?)
-        
-        
         register(null,{
             'roq-connector': {
+                connect: connect,
                 subscribeClusterStatus: subscribeClusterStatus,
                 subscribeQueueStatistics: subscribeQueueStatistics,
                 autoSubscribeQueuesStatistics: autoSubscribeQueuesStatistics,
                 removeQueue: removeQueue,
                 stopQueue: stopQueue,
-                startQueue: stopQueue,
+                startQueue: startQueue,
                 createQueue: createQueue,
                 closeSockets: closeSockets,
                 //consts: consts,
@@ -60,6 +59,11 @@ module.exports = function setup(options, imports, register) {
         });
     }
     
+    var connect = function(address){
+        gcmAddress = address || gcmAddress;
+        initGCM();
+    }
+
     var closeSockets = function(){
         if(socketGCM) 
             socketGCM.close();
@@ -70,10 +74,10 @@ module.exports = function setup(options, imports, register) {
     
     var initGCM = function(){
         socketGCM = zmq.socket('sub');
-        socketGCM.connect("tcp://"+consts.GCM_SERVER);
+        socketGCM.connect("tcp://"+gcmAddress+consts.GCM_SERVER_CONFIG);
         socketGCM.subscribe("");
         
-        console.log("registering GCM message receiving on "+consts.GCM_SERVER);
+        console.log("registering GCM message receiving on "+gcmAddress+consts.GCM_SERVER_CONFIG);
         socketGCM.on('message', parseGCMmessage);
     }
     
@@ -118,7 +122,7 @@ module.exports = function setup(options, imports, register) {
         socketQueueStats[queueName].listeners = [listener];  
         
         var sock = zmq.socket('req');
-        sock.connect("tcp://"+consts.CONFIG_SERVER);
+        sock.connect("tcp://"+gcmAddress+consts.GCM_SERVER_STATS);
         
         
         var msgReqSubscribe = {};
@@ -236,7 +240,7 @@ module.exports = function setup(options, imports, register) {
     
     var sendGCMrequest = function(request,callback){
         var sock = zmq.socket('req');
-        sock.connect("tcp://"+consts.GCM_SERVER_CMD);
+        sock.connect("tcp://"+gcmAddress+consts.GCM_SERVER_CMD);
 
         console.log("will send:",request);
         var msg = bsonParser.serialize(request);
