@@ -14,8 +14,38 @@ module.exports = function setup(options, imports, register) {
         
         prog.prompt('roq> ',function(result){
             logger.trace("Processing ["+result+"]");
-            prompt(prog);
+            if( 0 < ['quit','exit'].indexOf(result)){
+                process.exit(0);
+            }else{
+                var elements = result.split(' ');
+                var first = elements.shift();
+                var ok = false;
+                if('queue' == first || 'q' == first)
+                    ok = handleQueue(elements);
+                else if('host' == first || 'h' == first)
+                    ok = handleHost(elements);
+                
+                if(!ok)
+                    console.log("Unknown command");
+                prompt(prog);
+            }
         });
+    }
+    
+    var handleQueue = function(elems){
+        if('list' == elems[0] || 'l' == elems[0]){
+            console.log("list of queues");
+            return true;
+        }
+        return false;
+    }
+      
+    var handleHost = function(elems){
+        if('list' == elems[0] || 'l' == elems[0]){
+            console.log("list of hosts");
+            return true;
+        }
+        return false;
     }
       
     var startcli = function(){
