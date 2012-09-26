@@ -22,7 +22,8 @@
         "express-namespace": "~0.1",
         "express-resource": "~0.2",
         "log4js": "~0.4",
-        "futures": "~2.3"
+        "futures": "~2.3",
+        "commander": "~1.0"
     },
     "devDependencies": {
         "nodeunit": "*"
