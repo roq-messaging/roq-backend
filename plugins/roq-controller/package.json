@@ -1,0 +1,10 @@
+{
+    "name": "roq.controller",
+    "version": "0.0.1",
+    "main": "main.js",
+    "private": true,
+    "plugin": {
+        "consumes": ["roq-connector"],
+        "provides": ["roq-controller"]
+    }
+}
