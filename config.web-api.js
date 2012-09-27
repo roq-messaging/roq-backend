@@ -1,5 +1,5 @@
 module.exports =[
     './plugins/roq-connector',
-    './plugins/roq-orchestrator',
+    './plugins/roq-controller',
     './plugins/roq-web-api'
 ]
