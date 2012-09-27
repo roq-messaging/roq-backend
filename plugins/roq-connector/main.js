@@ -4,9 +4,9 @@ bsonParser = require("bson").BSONPure.BSON;
 var consts = {
     // common with java codebase (?)
     // IP here should move to some config file
-    GCM_SERVER_CONFIG: ":5005",
-    GCM_SERVER_CMD: ":5003", 
-    GCM_SERVER_STATS: ":5000",
+    MGMT_SERVER_CONFIG: ":5005",
+    MGMT_SERVER_CMD: ":5003", 
+    MGMT_SERVER_STATS: ":5000",
     
     CONFIG_REMOVE_QUEUE: 2001,
     CONFIG_STOP_QUEUE: 2002,
@@ -20,7 +20,7 @@ var consts = {
     BSON_STAT_MONITOR_HOST: "Stat_Monitor_host",
     
     // defined only here
-    //GCM_SERVER_CMD: "localhost:5003",
+    //MGMT_SERVER_CMD: "localhost:5003",
     MESSAGE_CMD: "CMD",
     MESSAGE_QUEUES: "Queues",
     MESSAGE_HOSTS: "Hosts",
@@ -36,11 +36,11 @@ var consts = {
 
 module.exports = function setup(options, imports, register) {
 
-    var gcmAddress = "127.0.0.1"; // sensible default
-    var socketGCM; // Global Configuration Manager
+    var mgmtControllerAddress = "127.0.0.1"; // sensible default
+    var socketMgmtContr; 
     var socketQueueStats = {};
     var queuesWithStatSocket = [];
-    var listenersGCM = [];
+    var listenersClusterStatus = [];
 
     var init = function(){
         register(null,{
@@ -59,29 +59,29 @@ module.exports = function setup(options, imports, register) {
         });
     }
     
-    var connect = function(address){
-        gcmAddress = address || gcmAddress;
-        initGCM();
+    var connect = function(mgmtAddr){
+        mgmtControllerAddress = mgmtAddr || mgmtControllerAddress;
+        initClusterStatus();
     }
 
     var closeSockets = function(){
-        if(socketGCM) 
-            socketGCM.close();
+        if(socketMgmtContr) 
+            socketMgmtContr.close();
         for(var i in queuesWithStatSocket){
             socketQueueStats[queuesWithStatSocket[i]].socket.close();
         }
     }
     
-    var initGCM = function(){
-        socketGCM = zmq.socket('sub');
-        socketGCM.connect("tcp://"+gcmAddress+consts.GCM_SERVER_CONFIG);
-        socketGCM.subscribe("");
+    var initClusterStatus = function(){
+        socketMgmtContr = zmq.socket('sub');
+        socketMgmtContr.connect("tcp://"+mgmtControllerAddress+consts.MGMT_SERVER_CONFIG);
+        socketMgmtContr.subscribe("");
         
-        console.log("registering GCM message receiving on "+gcmAddress+consts.GCM_SERVER_CONFIG);
-        socketGCM.on('message', parseGCMmessage);
+        console.log("registering GCM message receiving on "+mgmtControllerAddress+consts.MGMT_SERVER_CONFIG);
+        socketMgmtContr.on('message', parseClusterStatus);
     }
     
-    var parseGCMmessage = function(){
+    var parseClusterStatus = function(){
         
         var message = [];
         for(var i in arguments){
@@ -91,17 +91,13 @@ module.exports = function setup(options, imports, register) {
         
         var cmd = message[0][consts.MESSAGE_CMD];
         
-        if( cmd == consts.MNGT_UPDATE_CONFIG){
-            /*console.log("Received MNGT_UPDATE_CONFIG. Hosts:",
-                    message[2][consts.MESSAGE_HOSTS],
-                    " ; Queues: ",message[1][consts.MESSAGE_QUEUES]);*/
-            
+        if( cmd == consts.MNGT_UPDATE_CONFIG){           
             var msgToSend = {};
             msgToSend[consts.MESSAGE_HOSTS] = message[2][consts.MESSAGE_HOSTS];
             msgToSend[consts.MESSAGE_QUEUES] = message[1][consts.MESSAGE_QUEUES];
             
-            for(var i in listenersGCM){
-                listenersGCM[i](msgToSend);
+            for(var i in listenersClusterStatus){
+                listenersClusterStatus[i](msgToSend);
             }
         }else{
                 console.error("Unknown message type: "+cmd+".");
@@ -109,7 +105,7 @@ module.exports = function setup(options, imports, register) {
     }
     
     var subscribeClusterStatus = function(listener){
-        listenersGCM.push(listener);
+        listenersClusterStatus.push(listener);
     }
     
     // "Statistic subscription"
@@ -122,7 +118,7 @@ module.exports = function setup(options, imports, register) {
         socketQueueStats[queueName].listeners = [listener];  
         
         var sock = zmq.socket('req');
-        sock.connect("tcp://"+gcmAddress+consts.GCM_SERVER_STATS);
+        sock.connect("tcp://"+mgmtControllerAddress+consts.MGMT_SERVER_STATS);
         
         
         var msgReqSubscribe = {};
@@ -200,25 +196,25 @@ module.exports = function setup(options, imports, register) {
     }   
     
     var removeQueue = function(queueName,callback){
-        sendGCMrequest(makeMessage(
+        sendMgmtControllerRequest(makeMessage(
                     consts.MESSAGE_CMD,consts.CONFIG_REMOVE_QUEUE,
                     consts.MESSAGE_QNAME,queueName)
                     ,callback);
     }         
     var stopQueue = function(queueName,callback){
-        sendGCMrequest(makeMessage(
+        sendMgmtControllerRequest(makeMessage(
                     consts.MESSAGE_CMD,consts.CONFIG_STOP_QUEUE,
                     consts.MESSAGE_QNAME,queueName)
                     ,callback);
     }           
     var startQueue = function(queueName,callback){
-        sendGCMrequest(makeMessage(
+        sendMgmtControllerRequest(makeMessage(
                     consts.MESSAGE_CMD,consts.CONFIG_START_QUEUE,
                     consts.MESSAGE_QNAME,queueName)
                     ,callback);
     }    
     var createQueue = function(queueName,host,callback){
-        sendGCMrequest(makeMessage(
+        sendMgmtControllerRequest(makeMessage(
                     consts.MESSAGE_CMD,consts.CONFIG_CREATE_QUEUE,
                     consts.MESSAGE_QNAME,queueName,
                     consts.MESSAGE_HOST,host),callback);
@@ -238,9 +234,9 @@ module.exports = function setup(options, imports, register) {
         return msg;
     }
     
-    var sendGCMrequest = function(request,callback){
+    var sendMgmtControllerRequest = function(request,callback){
         var sock = zmq.socket('req');
-        sock.connect("tcp://"+gcmAddress+consts.GCM_SERVER_CMD);
+        sock.connect("tcp://"+mgmtControllerAddress+consts.MGMT_SERVER_CMD);
 
         console.log("will send:",request);
         var msg = bsonParser.serialize(request);
