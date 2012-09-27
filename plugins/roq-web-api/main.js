@@ -2,13 +2,12 @@ var express = require('express');
 require('express-namespace');
 
 module.exports = function setup(options, imports, register) {
-
+    var log = options.logger;
     var appServer;
-    var orchestrator = imports['roq-orchestrator'];
+    var controller = imports['roq-controller'];
     
     var init = function(){
         startServer(appServer);
-        connectRoq();
         register();
     }
         
@@ -16,72 +15,65 @@ module.exports = function setup(options, imports, register) {
          app = express();         
          mapRoutes(app);
          
-         app.get('/.*/',function(req,res){res.send('Nothing here');});
+         app.get('/.*/',function(req,res){res.send('RoQ Web API: Nothing here.');});
          app.listen(options.port || 3000);
     }
     
     var mapRoutes = function(app){
         app.namespace('/hosts',function(){
             app.get('/list',function(req,res){
-                res.send('host list');
+                log.trace('list hosts');
+                res.send(controller.listHosts());
             });
         });
         
         app.namespace('/queues',function(){
             
             app.get('/list',function(req,res){
-                res.send('queues list '+orchestrator.listQueues());
+                log.trace('list queues');
+                res.send(controller.listQueues());
             });
             
             app.namespace('/:id',function(){
                 
-                app.post('/add',function(req,res){
-                    // req.params must also contain the host ID
-                    res.send('add list '+req.params.id);
+                app.get('/create/:host',function(req,res){
+                    log.trace('create queue '+req.params.id);
+                    controller.createQueue(req.params.id,req.params.host);
+                    res.send("{result:'success'}");
                 });
                 
                 app.get('/remove',function(req,res){
-                    res.send('remove list'+req.params.id);
+                    log.trace('remove queue'+req.params.id);
+                    controller.removeQueue(req.params.id);
+                    res.send("{result:'success'}");
                 });
                 
                 app.get('/stop',function(req,res){
-                    res.send('stop list'+req.params.id);
+                    log.trace('stop queue'+req.params.id);
+                    controller.stopQueue(req.params.id);
+                    res.send("{result:'success'}");
                 });
                 
                 app.get('/start',function(req,res){
-                    res.send('start list'+req.params.id);
+                    log.trace('start queue'+req.params.id);
+                    controller.startQueue(req.params.id);
+                    res.send("{result:'success'}");
                 });
-                
-                app.get('/stats',function(req,res){
-                    res.send('stats for list'+req.params.id);
+                app.namespace('/stats',function(){
+                    app.get('/enable',function(req,res){
+                        log.trace('enable stats for queue '+req.params.id);
+                        controller.enableQueueStats(req.params.id);
+                        res.send("{result:'success'}");
+                    });
+                    app.get('/get',function(req,res){
+                        log.trace('get stats for queue '+req.params.id);
+                        res.send(controller.getQueueStats(req.params.id));
+                    });
                 });
             });
         });
     }
-    
-    var connectRoq = function(){
-        var receiveClusterStatus = function(message){
-            console.log("roq-web-api: received cluster status",message);
-        }
 
-        //imports['roq-connector'].subscribeClusterStatus(receiveClusterStatus);
-        
-        //imports['roq-connector'].createQueue('testQ6',"172.23.108.107");
-        //imports['roq-connector'].startQueue('testQ6');
-        //imports['roq-connector'].removeQueue('testQ5');
-        
-        
-        /*imports['roq-connector'].subscribeQueueStatistics('testQ6',function(err,exchangeId,exchangeStats,exchangeLoad){
-           if(null != err){
-                console.error("failed to get queue statistics",err);
-           }else{
-                console.log("queue statistics in web api!"); 
-                console.log(exchangeId,exchangeStats,exchangeLoad);
-           }
-        });  */  
-
-    }
-    
     // everything is loaded, we can call the constructor
     init();
 }
