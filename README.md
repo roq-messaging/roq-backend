@@ -22,7 +22,7 @@ Otherwise, use the launcher directly:
 ```
 ./launcher.js [app]
 ```
-The "app" parameter can be: webserver, web-api or orchestrator.
+The "app" parameter can be: web-api, cli, webserver or orchestrator. Currently, the two first are the only ones implemented.
 
 
 Test using:
