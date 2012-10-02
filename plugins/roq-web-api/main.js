@@ -25,7 +25,15 @@ module.exports = function setup(options, imports, register) {
          app = express();         
          mapRoutes(app);
          
-         app.get('/.*/',function(req,res){res.send('RoQ Web API: Nothing here.');});
+         app.get('*',function(req,res){res.send('RoQ Web API: Nothing here.');});
+         
+         // extJS first asks domain for access control rules
+         app.options('*',function(req,res){
+             res.set('Access-Control-Allow-Origin','*');
+             res.set('Access-Control-Allow-Methods','POST, GET, OPTIONS');
+             res.send();
+         });
+         
          app.listen(options.port || 3000);
     }
     
