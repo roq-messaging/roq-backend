@@ -1,0 +1,3 @@
+[submodule "roq-web-console"]
+	path = roq-web-console
+	url = git://github.com/roq-messaging/roq-web-console.git
