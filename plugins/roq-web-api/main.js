@@ -31,6 +31,7 @@ module.exports = function setup(options, imports, register) {
          app.options('*',function(req,res){
              res.set('Access-Control-Allow-Origin','*');
              res.set('Access-Control-Allow-Methods','POST, GET, OPTIONS');
+             res.set('Access-Control-Allow-Headers','X-Requested-With');
              res.send();
          });
          
