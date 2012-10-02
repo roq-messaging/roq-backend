@@ -23,17 +23,23 @@ module.exports = function setup(options, imports, register) {
         
     var startServer = function(app){
          app = express();         
+         
+         // add cross-site requests headers
+         app.all('*',function(req,res,next){
+            res.set('Access-Control-Allow-Origin','*');
+            res.set('Access-Control-Allow-Methods','POST, GET, OPTIONS');
+            res.set('Access-Control-Allow-Headers','X-Requested-With');
+            next();
+         });
+         
+         // map API routes
          mapRoutes(app);
          
-         app.get('*',function(req,res){res.send('RoQ Web API: Nothing here.');});
+         // catch-all for 404s
+         app.get('*',function(req,res){res.send(404,'RoQ Web API: Nothing here.');});
          
-         // extJS first asks domain for access control rules
-         app.options('*',function(req,res){
-             res.set('Access-Control-Allow-Origin','*');
-             res.set('Access-Control-Allow-Methods','POST, GET, OPTIONS');
-             res.set('Access-Control-Allow-Headers','X-Requested-With');
-             res.send();
-         });
+         // empty response to OPTIONS
+         app.options('*',function(req,res){res.send();});
          
          app.listen(options.port || 3000);
     }
