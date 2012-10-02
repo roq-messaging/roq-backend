@@ -55,11 +55,20 @@ module.exports = function setup(options, imports, register) {
                 };
     }
     
+    var getDefaultCallback = function(res,req){
+        return function(error){
+            if(null == error)
+                res.send({success:true});
+            else
+                res.send({success:false,error:error});
+        };
+    }
+    
     var mapRoutes = function(app){
         app.namespace('/hosts',function(){
             app.get('/list',function(req,res){
                 log.trace('list hosts');
-                res.send(controller.listHosts());
+                res.send(formatList(controller.listHosts()));
             });
         });
         
@@ -74,32 +83,27 @@ module.exports = function setup(options, imports, register) {
                 
                 app.get('/create/:host',function(req,res){
                     log.trace('create queue '+req.params.id);
-                    controller.createQueue(req.params.id,req.params.host);
-                    res.send("{result:'success'}");
+                    controller.createQueue(req.params.id,req.params.host,getDefaultCallback(req,res));
                 });
                 
                 app.get('/remove',function(req,res){
                     log.trace('remove queue'+req.params.id);
-                    controller.removeQueue(req.params.id);
-                    res.send("{result:'success'}");
+                    controller.removeQueue(req.params.id,getDefaultCallback(req,res));
                 });
                 
                 app.get('/stop',function(req,res){
                     log.trace('stop queue'+req.params.id);
-                    controller.stopQueue(req.params.id);
-                    res.send("{result:'success'}");
+                    controller.stopQueue(req.params.id,getDefaultCallback(req,res));
                 });
                 
                 app.get('/start',function(req,res){
                     log.trace('start queue'+req.params.id);
-                    controller.startQueue(req.params.id);
-                    res.send("{result:'success'}");
+                    controller.startQueue(req.params.id,getDefaultCallback(req,res));
                 });
                 app.namespace('/stats',function(){
                     app.get('/enable',function(req,res){
                         log.trace('enable stats for queue '+req.params.id);
-                        controller.enableQueueStats(req.params.id);
-                        res.send("{result:'success'}");
+                        controller.enableQueueStats(req.params.id,getDefaultCallback(req,res));
                     });
                     app.get('/get',function(req,res){
                         log.trace('get stats for queue '+req.params.id);

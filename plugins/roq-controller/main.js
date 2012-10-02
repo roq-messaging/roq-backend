@@ -48,36 +48,39 @@ module.exports = function setup(options, imports, register) {
     
     // **** queue operations ****
     
-    var createQueue = function(queueName,host){
-        connector.createQueue(queueName,host);
+    var createQueue = function(queueName,host,callback){
+        connector.createQueue(queueName,host,callback);
     }
     
-    var removeQueue = function(queueName){
-        connector.removeQueue(queueName);
+    var removeQueue = function(queueName,callback){
+        connector.removeQueue(queueName,callback);
     }
     
-    var startQueue = function(queueName){
-        connector.startQueue(queueName);
+    var startQueue = function(queueName,callback){
+        connector.startQueue(queueName,callback);
     }
     
-    var stopQueue = function(queueName){
-        connector.stopQueue(queueName);
+    var stopQueue = function(queueName,callback){
+        connector.stopQueue(queueName,callback);
     }
     
     // **** queue statistics ****
     
-    var enableQueueStats = function(queueName){
+    var enableQueueStats = function(queueName,callback){
         if(database.hasQueueStats(queueName))
             return;
             
         database.enableQueueStats(queueName);
+        
         connector.subscribeQueueStatistics(queueName,function(err,data){
            if(null != err){
-                log.error("failed to get queue statistics",err);
+                log.error("failed to subscribe to queue statistics",err);
+                callback(err);
            }else{
                 log.trace("queue statistics"); 
                 log.trace(data);
                 database.updateQueueStatistics(queueName,data);
+                callback(null);
            }
         });   
     }

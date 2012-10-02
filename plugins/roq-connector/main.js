@@ -279,23 +279,22 @@ module.exports = function setup(options, imports, register) {
         
         sock.send(msg);
         
+        if('function' != typeof(callback)) callback = function(){};
+        
         sock.on('message',function(){
-                if(arguments[0]){
-                    var answer = bsonParser.deserialize(arguments[0]);
-                    if( 0 == answer.RESULT){
-                        logger.info("request sent successfully. Comment: "+answer.COMMENT);
-                        if('function' == typeof(callback)) 
-                            callback(null);
-                    }else{
-                        logger.warn("failed to send request. "+answer.COMMENT);
-                        if('function' == typeof(callback)) 
-                            callback({code:answer.RESULT,message:answer.COMMENT});
-                    }
+            if(arguments[0]){
+                var answer = bsonParser.deserialize(arguments[0]);
+                if( 0 == answer.RESULT){
+                    logger.info("request sent successfully. Comment: "+answer.COMMENT);
+                    callback(null);
                 }else{
-                    logger.warn("received empty answer.");
-                    if('function' == typeof(callback)) 
-                            callback({code:-1,message:"received empty answer"});
+                    logger.warn("failed to send request. "+answer.COMMENT);
+                    callback({message:'RoQ failed to fulfill request.',RoQAnswer:answer});
                 }
+            }else{
+                logger.warn("received empty answer.");
+                callback({message:"RoQ did not answer the request."});
+            }
             sock.close();
         });
         
