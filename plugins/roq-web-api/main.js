@@ -1,6 +1,16 @@
 var express = require('express');
 require('express-namespace');
 
+/*
+    format of returned objects
+    {
+        "success" : true/false
+        "results": NUM
+        "rows": []
+    }
+    
+*/
+
 module.exports = function setup(options, imports, register) {
     var log = options.logger;
     var appServer;
@@ -19,6 +29,17 @@ module.exports = function setup(options, imports, register) {
          app.listen(options.port || 3000);
     }
     
+    var formatList = function(list){
+        if(!list)
+            return {"success":false};
+        else
+        return {
+                    "success" : true,
+                    "results": list.length,
+                    "rows": list
+                };
+    }
+    
     var mapRoutes = function(app){
         app.namespace('/hosts',function(){
             app.get('/list',function(req,res){
@@ -31,7 +52,7 @@ module.exports = function setup(options, imports, register) {
             
             app.get('/list',function(req,res){
                 log.trace('list queues');
-                res.send(controller.listQueues());
+                res.send(formatList(controller.listQueues()));
             });
             
             app.namespace('/:id',function(){
