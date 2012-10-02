@@ -1,0 +1,17 @@
+{
+    "appenders": [
+        {
+            "type": "file",
+            "filename": "cli.log",
+            "maxLogSize": 20480,
+            "backups": 3,
+            "pollInterval": 15,
+            "level": "TRACE",
+            "layout":{
+                "type": "basic"
+            }
+        }
+    ],
+    
+    "doNotReplaceConsole": true
+}

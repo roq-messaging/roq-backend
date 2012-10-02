@@ -1,0 +1,32 @@
+{
+    "private": true,
+    "author": "Jehan Bruggeman <jehan.bruggeman@euranova.eu>",
+    "name": "roq-backend",
+    "description": "RoQ management console back-end.",
+    "version": "0.0.1",
+    "repository":   { "type" : "git"
+                      , "url" : "http://github.com/roq-messaging/roq-backend"
+                      },
+    "engines": {
+        "node": "~0.6.11"
+    },
+    "scripts": {
+        "start": "./launcher.js orchestrator",
+        "test": "./node_modules/nodeunit/bin/nodeunit test.launcher.js"
+    },
+    "dependencies": {
+        "zmq": "~2.0",
+        "bson": "*",
+        "architect": "~0.1",
+        "express": "~3.0",
+        "express-namespace": "~0.1",
+        "express-resource": "~0.2",
+        "log4js": "~0.4",
+        "futures": "~2.3",
+        "commander": "~1.0"
+    },
+    "devDependencies": {
+        "nodeunit": "*"
+    },
+    "optionalDependencies": {}
+}
