@@ -1,15 +1,6 @@
 var express = require('express');
+var path = require('path');
 require('express-namespace');
-
-/*
-    format of returned objects
-    {
-        "success" : true/false
-        "results": NUM
-        "rows": []
-    }
-    
-*/
 
 module.exports = function setup(options, imports, register) {
     var log = options.logger;
@@ -17,11 +8,15 @@ module.exports = function setup(options, imports, register) {
     var controller = imports['roq-controller'];
     
     var init = function(){
-        startServer(appServer);
+        startServer(    
+            appServer,
+            options.port || 3000,
+            options.enableConsole
+        );
         register();
     }
         
-    var startServer = function(app){
+    var startServer = function(app,port,enableConsole){
          app = express();         
          
          // add cross-site requests headers
@@ -35,13 +30,17 @@ module.exports = function setup(options, imports, register) {
          // map API routes
          mapRoutes(app);
          
+         // the web interface
+         if(enableConsole)
+            mapWebConsoleRoutes(app);
+         
          // catch-all for 404s
          app.get('*',function(req,res){res.send(404,'RoQ Web API: Nothing here.');});
          
          // empty response to OPTIONS
          app.options('*',function(req,res){res.send();});
          
-         app.listen(options.port || 3000);
+         app.listen(port);
     }
     
     var formatList = function(list){
@@ -114,6 +113,10 @@ module.exports = function setup(options, imports, register) {
         });
     }
 
+    var mapWebConsoleRoutes = function(app){
+        app.use('/',express.static(path.join(__dirname,'../../roq-web-console/')));
+    }
+    
     // everything is loaded, we can call the constructor
     init();
 }
