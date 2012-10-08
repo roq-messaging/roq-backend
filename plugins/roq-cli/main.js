@@ -65,8 +65,40 @@ module.exports = function setup(options, imports, register) {
             
         }else if('start' == elems[0] || 't' == elems[0]){
             console.log("Starting queue "+elems[1]);
-            controller.startQueue(elems[1]);
-            
+            controller.startQueue(elems[1]);   
+                     
+        }else if('autoscaling' == elems[0] || 'as' == elems[0]){
+			// example: q as c test1 as2 40 30 20000 100000 10000
+			if('create' == elems[1] || 'c' == elems[1]){
+				if( 9 != elems.length){
+					console.log("Error: autoscaling create requires exactly 7 arguments.");
+					console.log("Arguments: queueName,asName,hostCPU,hostRAM,xchangeThr,queueThrProd,queueQProd.");
+				}else{
+					console.log("Create autoscaling rule for "+elems[2]);
+					controller.autoscalingCreateRule(
+							elems[2],elems[3],
+							parseInt(elems[4]),parseInt(elems[5]),
+							parseInt(elems[6]),parseInt(elems[7]),
+							parseInt(elems[8]),
+							function(err){
+								if(null == err)
+									logger.info("Autoscaling rule created.");
+								else
+									logger.error("Error creating AS rule:",err);
+							});
+				}
+			}else if('describe' == elems[1] || 'd' == elems[1]){
+				console.log("Request description of rule for queue ["+elems[2]+"]");
+				controller.autoscalingDescribeRule(elems[2],function(err,data){
+					if(null == err){
+						logger.info("Autoscaling rule received.",data);
+					}else{
+						logger.error("Error receiving AS rule:",err);
+					}
+				});
+			}else{
+                return false;
+            }
         }else if('stats' == elems[0] || 's' == elems[0]){
             if('get' == elems[1] || 'g' == elems[1]){
                 var data = controller.getQueueStats(elems[2]);
@@ -108,7 +140,15 @@ module.exports = function setup(options, imports, register) {
                 
             }else if('on' == elems[1] || 'o' == elems[1]){
                 console.log("Enabling statistics for queue "+elems[2]);
-                controller.enableQueueStats(elems[2]);
+                controller.enableQueueStats(elems[2],function(err){
+					if(!err)
+						logger.info("Statistics enabled for queue "+elems[2]);
+					else{
+						logger.error("Failed to enable queue stats for queue "+elems[2])
+						logger.error("q s o "+elems[2]+" > ",err);
+					}
+					
+				});
             }else{
                 return false;
             }
@@ -145,6 +185,8 @@ module.exports = function setup(options, imports, register) {
                 +"\nqueue remove [name]         (q r)"
                 +"\nqueue stop [name]           (q p)"
                 +"\nqueue start [name]          (q t)"
+                +"\nqueue autoscaling create    (q as c [7])"
+                +"\nqueue autoscaling describe  (q as d [1])"
                 +"\nusage, help                 (h)"
                 +"\nquit, exit                  (x)"
                 );
