@@ -67,20 +67,27 @@ module.exports = function setup(options, imports, register) {
     // **** queue statistics ****
     
     var enableQueueStats = function(queueName,callback){
+		if('function' != typeof(callback))
+			callback = function(){}
+			
         if(database.hasQueueStats(queueName))
-            return;
+            return callback(null);
             
         database.enableQueueStats(queueName);
         
-        connector.subscribeQueueStatistics(queueName,function(err,data){
-           if(null != err){
+        connector.subscribeQueueStatistics(queueName,function(err){
+			if(null != err){
                 log.error("failed to subscribe to queue statistics",err);
                 callback(err);
            }else{
-                log.trace("queue statistics"); 
-                log.trace(data);
-                database.updateQueueStatistics(queueName,data);
                 callback(null);
+           }
+		},function(err,data){
+           if(null != err){
+                log.error("listener received error message",err);
+           }else{
+                log.trace("received queue statistics for "+queueName); 
+                database.updateQueueStatistics(queueName,data);
            }
         });   
     }

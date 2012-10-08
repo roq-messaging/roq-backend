@@ -109,10 +109,10 @@ module.exports = function setup(options, imports, register) {
     }
     
     // "Statistic subscription"
-    var subscribeQueueStatistics = function(queueName, listener){
+    var subscribeQueueStatistics = function(queueName, callback, listener){
         if( 0 <= queuesWithStatSocket.indexOf(queueName)){
             socketQueueStats[queueName].listeners.push(listener);
-            return;
+            return callback(null);
         }
         socketQueueStats[queueName] = {};  
         socketQueueStats[queueName].listeners = [listener];  
@@ -133,10 +133,8 @@ module.exports = function setup(options, imports, register) {
         // get answer
         sock.on('message',function(){
             var bsonDConf = safeBSONread(arguments[0]);        
-            if(!bsonDConf){
-                listener("Unable to subscribe",null);
-                return;
-            }
+            if(!bsonDConf)
+                return callback("Unable to subscribe");
                 
             logger.info("received dconf:",bsonDConf);
             
@@ -211,7 +209,7 @@ module.exports = function setup(options, imports, register) {
         }
     }
     
-    var createMessage = function(cmd,payloads){
+    /*var createMessage = function(cmd,payloads){
         var finalMsg = [];
         finalMsg.push(bsonParser.serialize(createMessagePart(consts.MESSAGE_CMD,cmd)));
         for(var i in payloads){
@@ -225,7 +223,7 @@ module.exports = function setup(options, imports, register) {
         var part = {};
         part[ID] = data;
         return part;
-    }
+    }*/
     
     var removeQueue = function(queueName,callback){
         logger.info("removeQueue");

@@ -108,7 +108,15 @@ module.exports = function setup(options, imports, register) {
                 
             }else if('on' == elems[1] || 'o' == elems[1]){
                 console.log("Enabling statistics for queue "+elems[2]);
-                controller.enableQueueStats(elems[2]);
+                controller.enableQueueStats(elems[2],function(err){
+					if(!err)
+						console.log("\nStatistics enabled for queue "+elems[2]);
+					else{
+						console.log("Failed to enable queue stats for queue "+elems[2]);
+						console.error("q s o "+elems[2]+" > ",err);
+					}
+					
+				});
             }else{
                 return false;
             }
