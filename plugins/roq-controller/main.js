@@ -16,6 +16,7 @@ module.exports = function setup(options, imports, register) {
                     startQueue: startQueue,
                     stopQueue: stopQueue,
                     autoscalingCreateRule:autoscalingCreateRule,
+                    autoscalingDescribeRule: autoscalingDescribeRule,
                     getQueueStats: getQueueStats,
                     enableQueueStats: enableQueueStats,
                 }
@@ -63,6 +64,10 @@ module.exports = function setup(options, imports, register) {
     
     var stopQueue = function(queueName,callback){
         connector.stopQueue(queueName,callback);
+    }
+    
+    var autoscalingDescribeRule = function(queueName,callback){
+        connector.autoscalingDescribeRule(queueName,callback);
     }
     
     var autoscalingCreateRule = function(queueName,

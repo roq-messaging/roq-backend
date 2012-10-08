@@ -59,6 +59,7 @@ module.exports = function setup(options, imports, register) {
                 startQueue: startQueue,
                 createQueue: createQueue,
                 autoscalingCreateRule: autoscalingCreateRule,
+                autoscalingDescribeRule: autoscalingDescribeRule,
                 closeSockets: closeSockets,
                 //consts: consts,
             }
@@ -248,7 +249,13 @@ module.exports = function setup(options, imports, register) {
                     consts.MESSAGE_QNAME,queueName,
                     consts.MESSAGE_HOST,host),callback);
     } 
-    
+    var autoscalingDescribeRule = function(queueName,callback){
+		 sendMgmtControllerRequest(makeMessage(
+                    consts.MESSAGE_CMD,consts.CONFIG_AS_DESCRIBE_RULE,
+                    consts.MESSAGE_QNAME,queueName)),callback;
+	}
+	
+	
     var autoscalingCreateRule = function(
 			queueName,asName,hostCPU,hostRAM,
 			xchangeThr,queueThrProd,queueQProd,
@@ -303,13 +310,17 @@ module.exports = function setup(options, imports, register) {
         sock.on('message',function(){
             if(arguments[0]){
                 var answer = bsonParser.deserialize(arguments[0]);
-                if( 0 == answer.RESULT){
-                    logger.info("request sent successfully. Comment: "+answer.COMMENT);
-                    callback(null);
-                }else{
-                    logger.warn("failed to send request. "+answer.COMMENT);
-                    callback({message:'RoQ failed to fulfill request.',RoQAnswer:answer});
-                }
+                if(arguments[0].RESULT){
+					if( 0 == answer.RESULT){
+						logger.info("request sent successfully. Comment: "+answer.COMMENT);
+						callback(null);
+					}else{
+						logger.warn("failed to send request. "+answer.COMMENT);
+						callback({message:'RoQ failed to fulfill request.',RoQAnswer:answer});
+					}
+				}else{
+					 logger.warn("received non-standard reply.",answer);
+				}
             }else{
                 logger.warn("received empty answer.");
                 callback({message:"RoQ did not answer the request."});

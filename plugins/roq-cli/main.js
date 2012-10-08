@@ -88,8 +88,13 @@ module.exports = function setup(options, imports, register) {
 							});
 				}
 			}else if('describe' == elems[1] || 'd' == elems[1]){
-				controller.autoscalingDescribeRules(elems[2],function(err,data){
-					console.log('TODO: IMPLEMENT');
+				console.log("Request description of rule for queue ["+elems[2]+"]");
+				controller.autoscalingDescribeRule(elems[2],function(err,data){
+					if(null == err){
+						logger.info("Autoscaling rule received.",data);
+					}else{
+						logger.error("Error receiving AS rule:",err);
+					}
 				});
 			}else{
                 return false;
