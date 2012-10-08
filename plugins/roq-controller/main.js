@@ -15,6 +15,7 @@ module.exports = function setup(options, imports, register) {
                     removeQueue: removeQueue,
                     startQueue: startQueue,
                     stopQueue: stopQueue,
+                    autoscalingCreateRule:autoscalingCreateRule,
                     getQueueStats: getQueueStats,
                     enableQueueStats: enableQueueStats,
                 }
@@ -29,9 +30,9 @@ module.exports = function setup(options, imports, register) {
     
     // **** cluster status  ****    
     
-    var counter = 1;
+    var counterClusterStatus = 1;
     var receiveClusterStatus = function(message){
-        if( 0 == (counter++) % 10 )
+        if( 0 == (counterClusterStatus++) % 10 )
             log.trace("received 10 cluster statuses.");
         database.updateClusterConfig(message['Hosts'],message['Queues']);
     }    
@@ -64,6 +65,16 @@ module.exports = function setup(options, imports, register) {
         connector.stopQueue(queueName,callback);
     }
     
+    var autoscalingCreateRule = function(queueName,
+			asName,hostCPU,hostRAM,
+			xchangeThr,queueThrProd,queueQProd,
+			callback){
+        connector.autoscalingCreateRule(queueName,
+			asName,hostCPU,hostRAM,
+			xchangeThr,queueThrProd,queueQProd,
+			callback);
+    }
+    
     // **** queue statistics ****
     
     var enableQueueStats = function(queueName,callback){
@@ -75,6 +86,7 @@ module.exports = function setup(options, imports, register) {
             
         database.enableQueueStats(queueName);
         
+		var counterQueueStatistics=0;
         connector.subscribeQueueStatistics(queueName,function(err){
 			if(null != err){
                 log.error("failed to subscribe to queue statistics",err);
@@ -86,7 +98,8 @@ module.exports = function setup(options, imports, register) {
            if(null != err){
                 log.error("listener received error message",err);
            }else{
-                log.trace("received queue statistics for "+queueName); 
+				if( 0 == (counterQueueStatistics++) % 10 )
+					log.trace("received 10 queue stats for "+queueName); 
                 database.updateQueueStatistics(queueName,data);
            }
         });   

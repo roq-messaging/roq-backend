@@ -12,6 +12,8 @@ var consts = {
     CONFIG_STOP_QUEUE: 2002,
     CONFIG_CREATE_QUEUE: 2003,
     CONFIG_START_QUEUE: 2005,
+    CONFIG_AS_CREATE_RULE: 2006,
+    CONFIG_AS_DESCRIBE_RULE: 2007,
     
     MNGT_UPDATE_CONFIG: "1500",
     BSON_CONFIG_GET_HOST_BY_QNAME: 2000,
@@ -25,6 +27,10 @@ var consts = {
     MESSAGE_HOSTS: "Hosts",
     MESSAGE_QNAME: "QName",
     MESSAGE_HOST: "Host",
+    MESSAGE_AS_NAME: "AUTOSCALING_NAME",
+    MESSAGE_AS_HOST: "AUTOSCALING_HOST",
+    MESSAGE_AS_XCHANGE: "AUTOSCALING_XCHANGE",
+    MESSAGE_AS_Q: "AUTOSCALING_Q",
 }
 
 
@@ -52,6 +58,7 @@ module.exports = function setup(options, imports, register) {
                 stopQueue: stopQueue,
                 startQueue: startQueue,
                 createQueue: createQueue,
+                autoscalingCreateRule: autoscalingCreateRule,
                 closeSockets: closeSockets,
                 //consts: consts,
             }
@@ -142,7 +149,7 @@ module.exports = function setup(options, imports, register) {
             sockMonHost.connect(bsonDConf[consts.BSON_STAT_MONITOR_HOST]);
             sockMonHost.subscribe("");
             sockMonHost.on('message',function(){
-                logger.info("Stats for "+queueName);
+                //logger.trace("Stats for "+queueName);
                 var msg = decodeQueueStatMessage(arguments);
                 if(null != msg){
                     for(var i in socketQueueStats[queueName].listeners){
@@ -169,13 +176,16 @@ module.exports = function setup(options, imports, register) {
             stats:null
         };
         
+        // decode each part of the multipart message
         for(var j in args)
             msg[j] = safeBSONread(args[j]);
         
+        // clean up empty parts (i.e. BSON read failed)
         for(var j=msg.length-1;j>=0;j--)
             if(null == msg[j])
                 delete msg[j];
-            
+         
+        // do we actually have a readable message?
         if(!msg.length){
             return null;
             
@@ -208,22 +218,7 @@ module.exports = function setup(options, imports, register) {
             return null;
         }
     }
-    
-    /*var createMessage = function(cmd,payloads){
-        var finalMsg = [];
-        finalMsg.push(bsonParser.serialize(createMessagePart(consts.MESSAGE_CMD,cmd)));
-        for(var i in payloads){
-            finalMsg.push(bsonParser.serialize(payloads[i]));
-        }
-        
-        return finalMsg;
-    }
-    
-    var createMessagePart = function(ID,data){
-        var part = {};
-        part[ID] = data;
-        return part;
-    }*/
+
     
     var removeQueue = function(queueName,callback){
         logger.info("removeQueue");
@@ -253,6 +248,32 @@ module.exports = function setup(options, imports, register) {
                     consts.MESSAGE_QNAME,queueName,
                     consts.MESSAGE_HOST,host),callback);
     } 
+    
+    var autoscalingCreateRule = function(
+			queueName,asName,hostCPU,hostRAM,
+			xchangeThr,queueThrProd,queueQProd,
+			callback){
+        logger.info("autoscalingCreateRule");
+        for(i=2; i <=6; i++)
+			if( 'number' != typeof(arguments[i]) )
+				callback("Please provide numbers for metric arguments.",null);
+        sendMgmtControllerRequest(makeMessage(
+                    consts.MESSAGE_CMD,consts.CONFIG_AS_CREATE_RULE,
+                    consts.MESSAGE_QNAME,queueName,
+                    consts.MESSAGE_AS_NAME,asName,
+                    consts.MESSAGE_AS_HOST,{ 
+						"AUTOSCALING_HOST_CPU" : hostCPU , 
+						"AUTOSCALING_HOST_RAM" : hostRAM
+						},
+					consts.MESSAGE_AS_XCHANGE,{ 
+						"AUTOSCALING_XCHANGE_THR" : xchangeThr
+						} , 
+					consts.MESSAGE_AS_Q,{ 
+						"AUTOSCALING_THR_PROD_EXCH" : queueThrProd , 
+						"AUTOSCALING_Q_PROD_EXCH" : queueQProd
+						}
+                    ),callback);
+    }  
     
     // even arguments will be used as keys, odd one will be used as values
     var makeMessage = function(){
