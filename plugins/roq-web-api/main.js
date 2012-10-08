@@ -34,8 +34,8 @@ module.exports = function setup(options, imports, register) {
          if(enableConsole)
             mapWebConsoleRoutes(app);
          
-         // catch-all for 404s
-         app.get('*',function(req,res){res.send(404,'RoQ Web API: Nothing here.');});
+         // catch-all for 404s (incompatible with express.static)
+         //app.get('*',function(req,res){res.send(404,'RoQ Web API: Nothing here.');});
          
          // empty response to OPTIONS
          app.options('*',function(req,res){res.send();});
@@ -114,7 +114,10 @@ module.exports = function setup(options, imports, register) {
     }
 
     var mapWebConsoleRoutes = function(app){
-        app.use('/',express.static(path.join(__dirname,'../../roq-web-console/')));
+		var theDir = path.join(__dirname,'../../roq-web-console/');
+		log.trace("Serving static files of "+theDir);
+        app.use('/',express.static(theDir));
+        
     }
     
     // everything is loaded, we can call the constructor
