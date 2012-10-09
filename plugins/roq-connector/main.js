@@ -310,7 +310,7 @@ module.exports = function setup(options, imports, register) {
         sock.on('message',function(){
             if(arguments[0]){
                 var answer = bsonParser.deserialize(arguments[0]);
-                if(arguments[0].RESULT){
+                if(undefined != answer.RESULT){
 					if( 0 == answer.RESULT){
 						logger.info("request sent successfully. Comment: "+answer.COMMENT);
 						callback(null);
