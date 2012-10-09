@@ -15,6 +15,8 @@ module.exports = function setup(options, imports, register) {
                     removeQueue: removeQueue,
                     startQueue: startQueue,
                     stopQueue: stopQueue,
+                    autoscalingCreateRule:autoscalingCreateRule,
+                    autoscalingDescribeRule: autoscalingDescribeRule,
                     getQueueStats: getQueueStats,
                     enableQueueStats: enableQueueStats,
                 }
@@ -29,9 +31,9 @@ module.exports = function setup(options, imports, register) {
     
     // **** cluster status  ****    
     
-    var counter = 1;
+    var counterClusterStatus = 1;
     var receiveClusterStatus = function(message){
-        if( 0 == (counter++) % 10 )
+        if( 0 == (counterClusterStatus++) % 10 )
             log.trace("received 10 cluster statuses.");
         database.updateClusterConfig(message['Hosts'],message['Queues']);
     }    
@@ -48,35 +50,61 @@ module.exports = function setup(options, imports, register) {
     
     // **** queue operations ****
     
-    var createQueue = function(queueName,host){
-        connector.createQueue(queueName,host);
+    var createQueue = function(queueName,host,callback){
+        connector.createQueue(queueName,host,callback);
     }
     
-    var removeQueue = function(queueName){
-        connector.removeQueue(queueName);
+    var removeQueue = function(queueName,callback){
+        connector.removeQueue(queueName,callback);
     }
     
-    var startQueue = function(queueName){
-        connector.startQueue(queueName);
+    var startQueue = function(queueName,callback){
+        connector.startQueue(queueName,callback);
     }
     
-    var stopQueue = function(queueName){
-        connector.stopQueue(queueName);
+    var stopQueue = function(queueName,callback){
+        connector.stopQueue(queueName,callback);
+    }
+    
+    var autoscalingDescribeRule = function(queueName,callback){
+        connector.autoscalingDescribeRule(queueName,callback);
+    }
+    
+    var autoscalingCreateRule = function(queueName,
+			asName,hostCPU,hostRAM,
+			xchangeThr,queueThrProd,queueQProd,
+			callback){
+        connector.autoscalingCreateRule(queueName,
+			asName,hostCPU,hostRAM,
+			xchangeThr,queueThrProd,queueQProd,
+			callback);
     }
     
     // **** queue statistics ****
     
-    var enableQueueStats = function(queueName){
+    var enableQueueStats = function(queueName,callback){
+		if('function' != typeof(callback))
+			callback = function(){}
+			
         if(database.hasQueueStats(queueName))
-            return;
+            return callback(null);
             
         database.enableQueueStats(queueName);
-        connector.subscribeQueueStatistics(queueName,function(err,data){
-           if(null != err){
-                log.error("failed to get queue statistics",err);
+        
+		var counterQueueStatistics=0;
+        connector.subscribeQueueStatistics(queueName,function(err){
+			if(null != err){
+                log.error("failed to subscribe to queue statistics",err);
+                callback(err);
            }else{
-                log.trace("queue statistics"); 
-                log.trace(data);
+                callback(null);
+           }
+		},function(err,data){
+           if(null != err){
+                log.error("listener received error message",err);
+           }else{
+				if( 0 == (counterQueueStatistics++) % 10 )
+					log.trace("received 10 queue stats for "+queueName); 
                 database.updateQueueStatistics(queueName,data);
            }
         });   
