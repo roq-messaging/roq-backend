@@ -20,7 +20,7 @@ module.exports = function setup(options, imports, register) {
                 if( 0 <= ['help','usage','h'].indexOf(result)){
                     usage();
                 }else{
-                    var elements = result.split(' ');
+                    var elements = result.replace(/\s+/g," ").trim().split(' ');
                     var first = elements.shift();
                     var ok = false;
                     if('queue' == first || 'q' == first)
