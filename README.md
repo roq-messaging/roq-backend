@@ -9,6 +9,8 @@ Installing
 3. extract it somewhere
 4. install nodejs and npm (currently, v0.6 will do. On ubuntu, packages with the same name exist)
 5. install dependencies. To do that, go into roq-backend folder and run: ````npm install````
+6. fetch submodules: ````git submodule init; git submodule update````
+7. install extJS manually in roq-web-console/extjs
 
 Running
 -------
