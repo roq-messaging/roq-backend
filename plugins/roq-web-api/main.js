@@ -57,8 +57,8 @@ module.exports = function setup(options, imports, register) {
 				dir = -1;
 			list.sort(function(a,b){
 				log.trace("sort:",a,b);
-				var ap = a[sort.property];
-				var bp = b[sort.property];
+				var ap = a[sort.property]+"";
+				var bp = b[sort.property]+"";
 				if(null != ap && null != bp){
 					if(ap.toUpperCase() == bp.toUpperCase())
 						return 0
