@@ -77,6 +77,7 @@ module.exports = function setup(options, imports, register) {
     
     var formatList = function(list,page,start,limit,sort){
 		var list;
+		var totalLength = list.length;
 		
 		if(!list)
 			return {"success":false};
@@ -102,7 +103,7 @@ module.exports = function setup(options, imports, register) {
 		
 		return {
 				"success" : true,
-				"results": list.length,
+				"results": totalLength,
 				"rows": list
 			};
     }
