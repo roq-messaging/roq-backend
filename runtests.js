@@ -1,14 +1,11 @@
 #!/usr/bin/env node
-//var process = require('process');
-var path = require('path');
-var architect = require("architect");
-var config = 'testing';
-var configPath;
 
-var configPath = path.resolve("./config."+config+".js");
+//var process = require('process');
+var launchHelper = require("./launcher.helper");
+var config = 'testing';
 
 // this has to move in config
-var hostManagerIP = "172.24.112.161";
+var hostManagerIP = "192.168.0.17";
 
 // these are tests for roq-connector only
 // TODO: find an elegant way to isolate each module's tests 
@@ -131,12 +128,14 @@ var makeTestCallbackNoError = function(test,action){
 };
 
 var buildApp = function(context,callback){
-    context.application = architect.createApp(architect.loadConfig(configPath), function (err) {
+    /*context.application = architect.createApp(architect.loadConfig(configPath), function (err) {
         if (err) {
             console.error("While starting the '%s':", configPath);
             throw err;
         }
-    });
+    });*/
+    
+    context.application = launchHelper.run(config);
 
     // also: 'service', 'plugin'
     context.application.on('ready',function(){ 
