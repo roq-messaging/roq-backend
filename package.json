@@ -11,8 +11,8 @@
         "node": "~0.6.11"
     },
     "scripts": {
-        "start": "./launcher.js orchestrator",
-        "test": "./node_modules/nodeunit/bin/nodeunit test.launcher.js"
+        "start": "./launcher.js",
+        "test": "./node_modules/nodeunit/bin/nodeunit runtests.js"
     },
     "dependencies": {
         "zmq": "~2.0",
