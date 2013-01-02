@@ -1,5 +1,5 @@
 module.exports =[
-    './plugins/roq-connector',
+    '../plugins/roq-connector',
     //'./plugins/roq-web-api',
     //'./plugins/roq-cloudmanager',
     //'./plugins/roq-orchestrator',

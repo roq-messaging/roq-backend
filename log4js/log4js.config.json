@@ -2,7 +2,7 @@
     "appenders": [
         {
             "type": "file",
-            "filename": "app.log",
+            "filename": "logs/app.log",
             "maxLogSize": 20480,
             "backups": 3,
             "pollInterval": 15,

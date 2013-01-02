@@ -17,12 +17,16 @@ module.exports = function setup(options, imports, register) {
     }
         
     var startServer = function(app,port,enableConsole){
-         app = express();         
+         app = express();     
+         
+         //Parse request bodies
+         app.use(express.bodyParser());    
          
          // add cross-site requests headers
          app.all('*',function(req,res,next){
             res.set('Access-Control-Allow-Origin','*');
-            res.set('Access-Control-Allow-Methods','POST, GET, OPTIONS');
+            //Allow all verbs for RestFul API
+            res.set('Access-Control-Allow-Methods','POST, GET, PUT, DELETE, OPTIONS');
             res.set('Access-Control-Allow-Headers','X-Requested-With');
             next();
          });
@@ -56,8 +60,9 @@ module.exports = function setup(options, imports, register) {
 			if("ASC" == sort.direction)
 				dir = -1;
 			list.sort(function(a,b){
+				// this sort will fail for non-string elements.
 				log.trace("sort:",a,b);
-				var ap = a[sort.property];
+				var ap = a[sort.property]; 
 				var bp = b[sort.property];
 				if(null != ap && null != bp){
 					if(ap.toUpperCase() == bp.toUpperCase())
@@ -119,7 +124,7 @@ module.exports = function setup(options, imports, register) {
     
     var mapRoutes = function(app){
         app.namespace('/hosts',function(){
-            app.get('/list',function(req,res){
+            app.get('/',function(req,res){
                 log.trace('list hosts');
                 res.send(
 					formatList(controller.listHosts(),
@@ -132,7 +137,7 @@ module.exports = function setup(options, imports, register) {
         
         app.namespace('/queues',function(){
             
-            app.get('/list',function(req,res){
+            app.get('/',function(req,res){
                 log.trace('list queues');
                 res.send(formatList(controller.listQueues(),
 						parseInt(req.query.page),
@@ -141,34 +146,48 @@ module.exports = function setup(options, imports, register) {
 						req.query.sort));
             });
             
+            app.post('/',function(req,res){
+                //Get ID and HOST from JSON
+                var id = req.body.Name;
+                var host = req.body.Host;
+                log.trace('create queue '+id+' on host '+host);
+                controller.createQueue(id,host,getDefaultCallback(req,res));
+            });
+            
             app.namespace('/:id',function(){
                 
-                app.get('/create/:host',function(req,res){
-                    log.trace('create queue '+req.params.id);
-                    controller.createQueue(req.params.id,req.params.host,getDefaultCallback(req,res));
+                app.get('/',function(req,res){
+                    log.trace('get stats for queue '+req.params.id);
+                    res.send(controller.getQueueStats(req.params.id));
                 });
                 
-                app.get('/remove',function(req,res){
+                app.put('/',function(req,res){
+                    //Get new state
+                    var state = req.body.State;
+                    var statistics = req.body.Statistics;
+                    
+                    log.trace('update queue '+req.params.id);
+                    if(state){
+                      log.trace('start queue'+req.params.id);
+                      controller.startQueue(req.params.id,getDefaultCallback(req,res));
+                    } else{
+                      log.trace('stop queue'+req.params.id);
+                      controller.stopQueue(req.params.id,getDefaultCallback(req,res));
+                    }
+                    if(statistics){
+                      log.trace('enable stat for queue'+req.params.id);
+                      controller.enableQueueStats(req.params.id,getDefaultCallback(req,res));
+                    }                    
+                });
+                
+                app.delete('/',function(req,res){
                     log.trace('remove queue'+req.params.id);
                     controller.removeQueue(req.params.id,getDefaultCallback(req,res));
                 });
                 
-                app.get('/stop',function(req,res){
-                    log.trace('stop queue'+req.params.id);
-                    controller.stopQueue(req.params.id,getDefaultCallback(req,res));
-                });
-                
-                app.get('/start',function(req,res){
-                    log.trace('start queue'+req.params.id);
-                    controller.startQueue(req.params.id,getDefaultCallback(req,res));
-                });
-                app.namespace('/stats',function(){
-                    app.get('/enable',function(req,res){
-                        log.trace('enable stats for queue '+req.params.id);
-                        controller.enableQueueStats(req.params.id,getDefaultCallback(req,res));
-                    });
-                    app.get('/get',function(req,res){
-                        log.trace('get stats for queue '+req.params.id);
+                //Get on a queue returns full statistics for the queue.
+                app.get('/',function(req,res){
+                    log.trace('get stats for queue '+req.params.id);
                         res.send(controller.getQueueStats(req.params.id));
                     });
                 });
