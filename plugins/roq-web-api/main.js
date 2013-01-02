@@ -27,7 +27,7 @@ module.exports = function setup(options, imports, register) {
             res.set('Access-Control-Allow-Origin','*');
             //Allow all verbs for RestFul API
             res.set('Access-Control-Allow-Methods','POST, GET, PUT, DELETE, OPTIONS');
-            res.set('Access-Control-Allow-Headers','X-Requested-With');
+            res.set('Access-Control-Allow-Headers','X-Requested-With, Content-Type');
             next();
          });
          
