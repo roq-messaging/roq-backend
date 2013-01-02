@@ -71,40 +71,40 @@ module.exports = function setup(options, imports, register) {
     }
     
     var autoscalingCreateRule = function(queueName,
-			asName,hostCPU,hostRAM,
-			xchangeThr,queueThrProd,queueQProd,
-			callback){
+            asName,hostCPU,hostRAM,
+            xchangeThr,queueThrProd,queueQProd,
+            callback){
         connector.autoscalingCreateRule(queueName,
-			asName,hostCPU,hostRAM,
-			xchangeThr,queueThrProd,queueQProd,
-			callback);
+            asName,hostCPU,hostRAM,
+            xchangeThr,queueThrProd,queueQProd,
+            callback);
     }
     
     // **** queue statistics ****
     
     var enableQueueStats = function(queueName,callback){
-		if('function' != typeof(callback))
-			callback = function(){}
-			
+        if('function' != typeof(callback))
+            callback = function(){}
+            
         if(database.hasQueueStats(queueName))
             return callback(null);
             
         database.enableQueueStats(queueName);
         
-		var counterQueueStatistics=0;
+        var counterQueueStatistics=0;
         connector.subscribeQueueStatistics(queueName,function(err){
-			if(null != err){
+            if(null != err){
                 log.error("failed to subscribe to queue statistics",err);
                 callback(err);
            }else{
                 callback(null);
            }
-		},function(err,data){
+        },function(err,data){
            if(null != err){
                 log.error("listener received error message",err);
            }else{
-				if( 0 == (counterQueueStatistics++) % 10 )
-					log.trace("received 10 queue stats for "+queueName); 
+                if( 0 == (counterQueueStatistics++) % 10 )
+                    log.trace("received 10 queue stats for "+queueName); 
                 database.updateQueueStatistics(queueName,data);
            }
         });   

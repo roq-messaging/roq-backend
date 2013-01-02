@@ -250,35 +250,35 @@ module.exports = function setup(options, imports, register) {
                     consts.MESSAGE_HOST,host),callback);
     } 
     var autoscalingDescribeRule = function(queueName,callback){
-		 sendMgmtControllerRequest(makeMessage(
+         sendMgmtControllerRequest(makeMessage(
                     consts.MESSAGE_CMD,consts.CONFIG_AS_DESCRIBE_RULE,
                     consts.MESSAGE_QNAME,queueName)),callback;
-	}
-	
-	
+    }
+    
+    
     var autoscalingCreateRule = function(
-			queueName,asName,hostCPU,hostRAM,
-			xchangeThr,queueThrProd,queueQProd,
-			callback){
+            queueName,asName,hostCPU,hostRAM,
+            xchangeThr,queueThrProd,queueQProd,
+            callback){
         logger.info("autoscalingCreateRule");
         for(i=2; i <=6; i++)
-			if( 'number' != typeof(arguments[i]) )
-				callback("Please provide numbers for metric arguments.",null);
+            if( 'number' != typeof(arguments[i]) )
+                callback("Please provide numbers for metric arguments.",null);
         sendMgmtControllerRequest(makeMessage(
                     consts.MESSAGE_CMD,consts.CONFIG_AS_CREATE_RULE,
                     consts.MESSAGE_QNAME,queueName,
                     consts.MESSAGE_AS_NAME,asName,
                     consts.MESSAGE_AS_HOST,{ 
-						"AUTOSCALING_HOST_CPU" : hostCPU , 
-						"AUTOSCALING_HOST_RAM" : hostRAM
-						},
-					consts.MESSAGE_AS_XCHANGE,{ 
-						"AUTOSCALING_XCHANGE_THR" : xchangeThr
-						} , 
-					consts.MESSAGE_AS_Q,{ 
-						"AUTOSCALING_THR_PROD_EXCH" : queueThrProd , 
-						"AUTOSCALING_Q_PROD_EXCH" : queueQProd
-						}
+                        "AUTOSCALING_HOST_CPU" : hostCPU , 
+                        "AUTOSCALING_HOST_RAM" : hostRAM
+                        },
+                    consts.MESSAGE_AS_XCHANGE,{ 
+                        "AUTOSCALING_XCHANGE_THR" : xchangeThr
+                        } , 
+                    consts.MESSAGE_AS_Q,{ 
+                        "AUTOSCALING_THR_PROD_EXCH" : queueThrProd , 
+                        "AUTOSCALING_Q_PROD_EXCH" : queueQProd
+                        }
                     ),callback);
     }  
     
@@ -311,16 +311,16 @@ module.exports = function setup(options, imports, register) {
             if(arguments[0]){
                 var answer = bsonParser.deserialize(arguments[0]);
                 if(undefined != answer.RESULT){
-					if( 0 == answer.RESULT){
-						logger.info("request sent successfully. Comment: "+answer.COMMENT);
-						callback(null);
-					}else{
-						logger.warn("failed to send request. "+answer.COMMENT);
-						callback({message:'RoQ failed to fulfill request.',RoQAnswer:answer});
-					}
-				}else{
-					 logger.warn("received non-standard reply.",answer);
-				}
+                    if( 0 == answer.RESULT){
+                        logger.info("request sent successfully. Comment: "+answer.COMMENT);
+                        callback(null);
+                    }else{
+                        logger.warn("failed to send request. "+answer.COMMENT);
+                        callback({message:'RoQ failed to fulfill request.',RoQAnswer:answer});
+                    }
+                }else{
+                     logger.warn("received non-standard reply.",answer);
+                }
             }else{
                 logger.warn("received empty answer.");
                 callback({message:"RoQ did not answer the request."});
