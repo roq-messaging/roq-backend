@@ -19,6 +19,7 @@ module.exports = function setup(options, imports, register) {
                     autoscalingDescribeRule: autoscalingDescribeRule,
                     getQueueStats: getQueueStats,
                     enableQueueStats: enableQueueStats,
+                    disableQueueStats: disableQueueStats,
                 }
         });
     }
@@ -81,23 +82,35 @@ module.exports = function setup(options, imports, register) {
     }
     
     // **** queue statistics ****
-    
+    var disableQueueStats = function(queueName,callback){
+		listener = database.getQueueStatsListener(queueName);
+		
+		connector.unsubscribeQueueStatistics(queueName,listener,function(err){
+            if(null != err){
+                log.error("failed to unsubscribe from queue statistics",err);
+                callback(err);
+           }else{
+			   database.disableQueueStats(queueName);
+               callback(null);
+           }
+        });
+	}
+	
     var enableQueueStats = function(queueName,callback){
         if('function' != typeof(callback))
             callback = function(){}
             
         if(database.hasQueueStats(queueName))
             return callback(null);
-            
-        database.enableQueueStats(queueName);
-        
+                    
         var counterQueueStatistics=0;
-        connector.subscribeQueueStatistics(queueName,function(err){
+        connector.subscribeQueueStatistics(queueName,function(err,listener){
             if(null != err){
                 log.error("failed to subscribe to queue statistics",err);
                 callback(err);
            }else{
-                callback(null);
+			   database.enableQueueStats(queueName,listener);
+               callback(null);
            }
         },function(err,data){
            if(null != err){
@@ -125,10 +138,11 @@ module.exports = function setup(options, imports, register) {
         
         var obj = {};
         
-        obj.enableQueueStats = function(queue){
+        obj.enableQueueStats = function(queue,listr){
             if(!queueStatistics[queue])
                 queueStatistics[queue] = { 
                     enabled:true,
+                    listener:listr,
                     data:{
                         exchangesList:[],
                         exchanges:{},
@@ -139,9 +153,17 @@ module.exports = function setup(options, imports, register) {
                 queueStatistics[queue].enabled = true;
         }
         
+        obj.getQueueStatsListener = function(queue){
+            if(queueStatistics[queue]){
+                return queueStatistics[queue].listener;
+			}
+			return null;
+        }
+        
         obj.disableQueueStats = function(queue){
-            if(queueStatistics[queue])
+            if(queueStatistics[queue]){
                 queueStatistics[queue].enabled = false;
+			}
         }
         
         obj.updateQueueStatistics = function(queue, data){
