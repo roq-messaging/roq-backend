@@ -176,6 +176,11 @@ module.exports = function setup(options, imports, register) {
         }
         
         obj.getQueues = function(){
+			
+			// add infos on queue statistics
+			for(var i in clusterConfig.queues)
+				clusterConfig.queues[i].statisticsEnabled = queueStatistics[queue].enabled;
+				
             return clusterConfig.queues;
         }
         
