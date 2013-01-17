@@ -1,0 +1,17 @@
+=========================================================================
+== NOTICE file for RoQ Backend - See the Apache License, Version 2.0
+== for more information on this file
+=========================================================================
+
+RoQ Backend
+Copyright 2011-2012 EURANOVA
+
+This product includes software developed at
+EURANOVA (http://www.euranova.eu/).
+
+Authors:
+Jehan Bruggeman
+Quentin Dugauthier
+This project was founded by EURANOVA
+
+This software is built on NodeJS using several modules listed in package.json

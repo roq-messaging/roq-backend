@@ -8,7 +8,14 @@ Installing
 2. Download the latest tarball from develop
 3. extract it somewhere
 4. install nodejs and npm (currently, v0.6 will do. On ubuntu, packages with the same name exist)
-5. install dependencies. To do that, go into roq-backend folder and run: ````npm install````
+5. install dependencies. To do that, go into roq-backend folder and run: 
+		
+		npm install
+		
+6. fetch submodules. To do that, go into roq-backend folder and run:
+
+		git submodule init
+		git submodule update --recursive
 
 Running
 -------
