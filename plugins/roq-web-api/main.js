@@ -195,7 +195,7 @@ module.exports = function setup(options, imports, register) {
                     });
                 });
             });
-        });
+        
     }
 
     var mapWebConsoleRoutes = function(app){
