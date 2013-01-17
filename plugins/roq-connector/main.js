@@ -120,7 +120,7 @@ module.exports = function setup(options, imports, register) {
     var subscribeQueueStatistics = function(queueName, callback, listener){
         if( 0 <= queuesWithStatSocket.indexOf(queueName)){
             socketQueueStats[queueName].listeners.push(listener);
-            return callback(null);
+            return callback(listener);
         }
         socketQueueStats[queueName] = {};  
         socketQueueStats[queueName].listeners = [listener];  
@@ -162,7 +162,27 @@ module.exports = function setup(options, imports, register) {
             socketQueueStats[queueName].socket = sockMonHost;
             sock.close();
             
+            callback(listener);
         });
+    }
+    
+    var unsubscribeQueueStatistics = function(queueName,listener){
+        logger.trace("unsubscribeQueueStatistics for "+queueName);
+        
+        // removing listeners
+        for(var i in socketQueueStats[queueName].listeners){
+            if(listener == socketQueueStats[queueName].listeners[i]){
+                logger.trace("unsubscribelistener "+i);
+                delete socketQueueStats[queueName].listeners[i];
+            }
+        }
+        
+        // no listeners left? Disconnect and remove the socket
+        if( 0 == socketQueueStats[queueName].length){
+            logger.trace("delete socket for  "+queueName);
+            socketQueueStats[queueName].socket.disconnect();
+            delete socketQueueStats[queueName];
+        }
     }
     
     // decode stat messages
