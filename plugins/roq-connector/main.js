@@ -3,7 +3,6 @@ bsonParser = require("bson").BSONPure.BSON;
 
 var consts = {
     // common with java codebase (?)
-    // IP here should move to some config file
     MGMT_SERVER_CONFIG: ":5005",
     MGMT_SERVER_CMD: ":5003", 
     MGMT_SERVER_STATS: ":5000",
@@ -41,7 +40,7 @@ var consts = {
 
 module.exports = function setup(options, imports, register) {
     var logger = options.logger;
-    var mgmtControllerAddress = "127.0.0.1"; // sensible default
+    var mgmtControllerAddress = options.mgmtControllerAddress || "127.0.0.1"; // sensible default
     var socketMgmtContr; 
     var socketQueueStats = {};
     var queuesWithStatSocket = [];

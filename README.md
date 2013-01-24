@@ -36,3 +36,57 @@ Test using:
 ```
 npm test
 ```
+
+Components
+----------
+
+
+### roq-connector
+
+Implements the RoQ API by connecting to the zmq socket and discussing with RoQ's GCM.
+
+### roq-controller
+
+Caches status and statistics messages received from RoQ in order to offer a synchronous way to access the latest statistics and cluster status.
+
+### roq-cli
+
+Provides a command-line interface to access the management API. You can run it using:
+
+```
+./launcher.js cli
+```
+
+    --------------
+    |    cli     |
+    --------------
+    | controller |
+    --------------
+    | connector  |
+    --------------
+
+### roq-web-api
+
+Provides a REST API to access the management API. You can run it using:
+
+```
+./launcher.js web-api
+```
+
+    --------------
+    |   web-api  |
+    --------------
+    | controller |
+    --------------
+    | connector  |
+    --------------
+
+### roq-webserver
+
+Currently, the web console server is launched by the web-api plugin. To activate or deactivate the web console, just edit 
+
+```
+runconfigs/config.web-api.js 
+```
+
+and change "enableConsole" to false or true. See [roq-webconsole's repository](https://github.com/roq-messaging/roq-web-console) for more information on the web console.
