@@ -45,10 +45,10 @@ module.exports = function setup(options, imports, register) {
                 return true;
             }
             console.log("\nThere are "+queues.length+" queues.");
-            console.log("\tID\tNAME\tHOST\t\tSTATE");
-            console.log("\t-------------------------------------");
+            console.log("\tID\tNAME\tHOST\t\tACTIVE\tSTATS");
+            console.log("\t---------------------------------------------");
             for(var i in queues)
-                console.log("\t"+i+":\t"+queues[i].Name+"\t"+queues[i].Host+"\t"+queues[i].State);
+                console.log("\t"+i+":\t"+queues[i].Name+"\t"+queues[i].Host+"\t"+queues[i].State+"\t"+queues[i].statisticsEnabled);
             
         }else if('create' == elems[0] || 'c' == elems[0]){
             console.log("Adding queue "+elems[1]+" to host "+elems[2]);
