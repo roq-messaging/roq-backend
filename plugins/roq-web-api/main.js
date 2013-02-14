@@ -165,22 +165,29 @@ module.exports = function setup(options, imports, register) {
                 });
                 
                 app.put('/',function(req,res){
-                    //Get new state
-                    var state = req.body.State;
-                    var statistics = req.body.Statistics;
-                    
                     log.trace('update queue '+req.params.id);
-                    if(state){
-                      log.trace('start queue'+req.params.id);
-                      controller.startQueue(req.params.id,getDefaultCallback(req,res));
-                    } else{
-                      log.trace('stop queue'+req.params.id);
-                      controller.stopQueue(req.params.id,getDefaultCallback(req,res));
-                    }
-                    if(statistics){
-                      log.trace('enable stat for queue'+req.params.id);
-                      controller.enableQueueStats(req.params.id,getDefaultCallback(req,res));
-                    }                    
+                    
+                    // State: queue start/stop
+                    if("undefined" != typeof(req.body.State)){
+						if(req.body.State){
+						  log.trace('start queue'+req.params.id);
+						  controller.startQueue(req.params.id,getDefaultCallback(req,res));
+						} else{
+						  log.trace('stop queue'+req.params.id);
+						  controller.stopQueue(req.params.id,getDefaultCallback(req,res));
+						}
+					}
+					
+					// Statistics: queue stats on/off
+                    if("undefined" != typeof(req.body.statisticsEnabled) ){
+						if(req.body.statisticsEnabled){
+						  log.trace('enable stat for queue'+req.params.id);
+						  controller.enableQueueStats(req.params.id,getDefaultCallback(req,res));
+						}else{
+						  log.trace('disable stat for queue'+req.params.id);
+						  controller.disableQueueStats(req.params.id,getDefaultCallback(req,res));
+						}   
+					}        
                 });
                 
                 app.delete('/',function(req,res){

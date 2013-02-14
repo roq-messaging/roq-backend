@@ -3,7 +3,6 @@ bsonParser = require("bson").BSONPure.BSON;
 
 var consts = {
     // common with java codebase (?)
-    // IP here should move to some config file
     MGMT_SERVER_CONFIG: ":5005",
     MGMT_SERVER_CMD: ":5003", 
     MGMT_SERVER_STATS: ":5000",
@@ -41,7 +40,7 @@ var consts = {
 
 module.exports = function setup(options, imports, register) {
     var logger = options.logger;
-    var mgmtControllerAddress = "127.0.0.1"; // sensible default
+    var mgmtControllerAddress = options.mgmtControllerAddress || "127.0.0.1"; // sensible default
     var socketMgmtContr; 
     var socketQueueStats = {};
     var queuesWithStatSocket = [];
@@ -54,6 +53,7 @@ module.exports = function setup(options, imports, register) {
                 connect: connect,
                 subscribeClusterStatus: subscribeClusterStatus,
                 subscribeQueueStatistics: subscribeQueueStatistics,
+                unsubscribeQueueStatistics: unsubscribeQueueStatistics,
                 removeQueue: removeQueue,
                 stopQueue: stopQueue,
                 startQueue: startQueue,
@@ -120,7 +120,7 @@ module.exports = function setup(options, imports, register) {
     var subscribeQueueStatistics = function(queueName, callback, listener){
         if( 0 <= queuesWithStatSocket.indexOf(queueName)){
             socketQueueStats[queueName].listeners.push(listener);
-            return callback(null);
+            return callback(null,listener);
         }
         socketQueueStats[queueName] = {};  
         socketQueueStats[queueName].listeners = [listener];  
@@ -162,7 +162,33 @@ module.exports = function setup(options, imports, register) {
             socketQueueStats[queueName].socket = sockMonHost;
             sock.close();
             
+            callback(null,listener);
         });
+    }
+    
+    var unsubscribeQueueStatistics = function(queueName,listener){
+        logger.trace("unsubscribeQueueStatistics for "+queueName);
+        
+        logger.trace("Listeners remaining  for  "+queueName+": "+socketQueueStats[queueName].listeners.length);
+        
+        // removing listeners
+        for(var i in socketQueueStats[queueName].listeners){
+            if(listener == socketQueueStats[queueName].listeners[i]){
+                logger.trace("unsubscribelistener "+i);
+                delete socketQueueStats[queueName].listeners[i];
+                socketQueueStats[queueName].listeners.splice(i,1);
+            }
+        }
+        
+        // no listeners left? Disconnect and remove the socket
+        if( 0 == socketQueueStats[queueName].listeners.length){
+            logger.trace("delete socket for  "+queueName);
+            socketQueueStats[queueName].socket.close();
+            delete socketQueueStats[queueName];
+        }else{
+            logger.trace("listeners remaining  for  "+queueName+" ("+socketQueueStats[queueName].listeners.length+")");
+            logger.trace(socketQueueStats[queueName].listeners);
+        }
     }
     
     // decode stat messages

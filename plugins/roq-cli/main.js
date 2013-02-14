@@ -45,10 +45,10 @@ module.exports = function setup(options, imports, register) {
                 return true;
             }
             console.log("\nThere are "+queues.length+" queues.");
-            console.log("\tID\tNAME\tHOST\t\tSTATE");
-            console.log("\t-------------------------------------");
+            console.log("\tID\tNAME\tHOST\t\tACTIVE\tSTATS");
+            console.log("\t---------------------------------------------");
             for(var i in queues)
-                console.log("\t"+i+":\t"+queues[i].Name+"\t"+queues[i].Host+"\t"+queues[i].State);
+                console.log("\t"+i+":\t"+queues[i].Name+"\t"+queues[i].Host+"\t"+queues[i].State+"\t"+queues[i].statisticsEnabled);
             
         }else if('create' == elems[0] || 'c' == elems[0]){
             console.log("Adding queue "+elems[1]+" to host "+elems[2]);
@@ -149,6 +149,17 @@ module.exports = function setup(options, imports, register) {
                     }
                     
                 });
+            }else if('off' == elems[1] || 'f' == elems[1]){
+                console.log("Disabling statistics for queue "+elems[2]);
+                controller.disableQueueStats(elems[2],function(err){
+                    if(!err)
+                        logger.info("Statistics disabled for queue "+elems[2]);
+                    else{
+                        logger.error("Failed to disable queue stats for queue "+elems[2])
+                        logger.error("q s o "+elems[2]+" > ",err);
+                    }
+                    
+                });
             }else{
                 return false;
             }
@@ -179,7 +190,8 @@ module.exports = function setup(options, imports, register) {
         console.log("\nAvailable commands: "
                 +"\nhost list                   (h l)"
                 +"\nqueue list                  (q l)"
-                +"\nqueue stats on [name]       (q s o)"
+                +"\nqueue stats on  [name]      (q s o)"
+                +"\nqueue stats off [name]      (q s f)"
                 +"\nqueue stats get [name]      (q s g)"
                 +"\nqueue create [name] [host]  (q c)"
                 +"\nqueue remove [name]         (q r)"

@@ -3,7 +3,7 @@
     "author": "Jehan Bruggeman <jehan.bruggeman@euranova.eu>",
     "name": "roq-backend",
     "description": "RoQ management console back-end.",
-    "version": "0.3",
+    "version": "0.3.1",
     "repository":   { "type" : "git"
                       , "url" : "http://github.com/roq-messaging/roq-backend"
                       },
