@@ -201,8 +201,10 @@ module.exports = function setup(options, imports, register) {
 			
 			// add infos on queue statistics
 			for(var i in clusterConfig.queues)
-				clusterConfig.queues[i].statisticsEnabled = queueStatistics[queue].enabled;
-				
+				try{
+					clusterConfig.queues[i].statisticsEnabled = this.hasQueueStats(clusterConfig.queues[i]["Name"]);
+				}catch(TypeError){} // if we don't have any info yet on queue statistics for that queue
+			
             return clusterConfig.queues;
         }
         
