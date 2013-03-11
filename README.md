@@ -20,16 +20,15 @@ Installing
 Running
 -------
 
-Start orchestrator using:
+Run the application using the launcher:
 ```
-npm start
+./launcher.js [web|cli]
 ```
+### web
+By choosing **web**, you get the web application (management console) and the APIs.
 
-Otherwise, use the launcher directly:
-```
-./launcher.js [app]
-```
-The "app" parameter can be: web-api, cli, webserver or orchestrator. Currently, the two first are the only ones implemented.
+## cli 
+By choosing **cli** you get the command-line interface. See below for a manual.
 
 
 Test using:
@@ -37,8 +36,29 @@ Test using:
 npm test
 ```
 
+Using the CLI
+-------------
+
+
+
+
+Web API Documentation
+---------------------
+
+
+
 Components
 ----------
+
+Stack: 
+
+    --------------
+    | [cli/web]  |
+    --------------
+    | controller |
+    --------------
+    | connector  |
+    --------------
 
 
 ### roq-connector
@@ -53,40 +73,15 @@ Caches status and statistics messages received from RoQ in order to offer a sync
 
 Provides a command-line interface to access the management API. You can run it using:
 
-```
-./launcher.js cli
-```
+### roq-web-core
 
-    --------------
-    |    cli     |
-    --------------
-    | controller |
-    --------------
-    | connector  |
-    --------------
+Common dependency to the web-api and the web-app.
 
 ### roq-web-api
 
-Provides a REST API to access the management API. You can run it using:
+Provides a REST API to access the management API. 
 
-```
-./launcher.js web-api
-```
+### roq-web-app
 
-    --------------
-    |   web-api  |
-    --------------
-    | controller |
-    --------------
-    | connector  |
-    --------------
+The web console. See [roq-webconsole's repository](https://github.com/roq-messaging/roq-web-console) for more information on the web console.
 
-### roq-webserver
-
-Currently, the web console server is launched by the web-api plugin. To activate or deactivate the web console, just edit 
-
-```
-runconfigs/config.web-api.js 
-```
-
-and change "enableConsole" to false or true. See [roq-webconsole's repository](https://github.com/roq-messaging/roq-web-console) for more information on the web console.
