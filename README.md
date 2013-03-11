@@ -6,6 +6,10 @@ This repository hosts two tools to control RoQ written in NodeJS.
 * A commandline interface 
 * A web application ("management console")
 
+Installing
+----------
+
+See the [install guide](INSTALL.md).
 
 Launching the web application
 -----------------------------

@@ -2,7 +2,7 @@ RoQ Internal Architecture
 =========================
 
 The architecture used by roq-backend is based on 
-(architect.js)[https://github.com/c9/architect]. 
+[architect.js](https://github.com/c9/architect). 
 
 Every component is a plug-in describing dependencies on other plug-ins. 
 Here are the dependencies between these plug-ins:
