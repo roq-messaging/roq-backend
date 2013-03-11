@@ -1,15 +1,24 @@
+RoQ Internal Architecture
+=========================
+
+The architecture used by roq-backend is based on 
+(architect.js)[https://github.com/c9/architect]. 
+
+Every component is a plug-in describing dependencies on other plug-ins. 
+Here are the dependencies between these plug-ins:
 
 
-Stack: 
+    roq-cli  roq-web-api     roq-web-app
+        \      /       \       /
+         \    /         \     /
+     roq-controller     roq-web-core
+           |
+           |
+     roq-connector
+ 
 
-    --------------
-    | [cli/web]  |
-    --------------
-    | controller |
-    --------------
-    | connector  |
-    --------------
-
+Components
+----------
 
 ### roq-connector
 

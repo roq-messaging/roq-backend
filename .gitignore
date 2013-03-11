@@ -15,5 +15,7 @@ node_modules
 npm-debug.log
 cli.log*
 app.log*
-/readme.html
 /testing.js
+
+/readme.html
+/docs/*.html
