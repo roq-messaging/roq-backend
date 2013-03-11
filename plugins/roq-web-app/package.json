@@ -1,10 +1,10 @@
 {
-    "name": "roq.web-api",
+    "name": "roq.web-app",
     "version": "0.0.2",
     "main": "main.js",
     "private": true,
     "plugin": {
-        "consumes": ["roq-controller","roq-web-core"],
+        "consumes": ["roq-web-core"],
         "provides": []
     }
 }
