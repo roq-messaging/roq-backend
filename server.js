@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// shortcut to run web-api
+// shortcut to run web application
 // @see launcher.js
 var launchHelper = require("./launcher.helper");
-launchHelper.run('web-api');
+launchHelper.run('web');
