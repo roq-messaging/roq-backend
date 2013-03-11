@@ -3,19 +3,19 @@ var express = require('express');
 module.exports = function setup(options, imports, register) {
     var log = options.logger;
     var appServer;
+
     
     
     var init = function(){
-        appServer = startServer(
-            options.port || 3000
-        );
+        appServer = createServer();
+        startServer(appServer,options.port || 3000);
         register(null,{
                     'roq-web-core': {
                         getApp: function(){ return appServer; }
                 }});
     }
     
-    var startServer = function(port,enableConsole){
+    var createServer = function(){
          app = express();     
          
          //Parse request bodies
@@ -30,18 +30,18 @@ module.exports = function setup(options, imports, register) {
             next();
          });
          
+         return app;
+    }
+    
+    
+    var startServer = function(app,port){
          // catch-all for 404s (incompatible with express.static)
          //app.get('*',function(req,res){res.send(404,'RoQ Web API: Nothing here.');});
          
          // empty response to OPTIONS
          app.options('*',function(req,res){res.send();});
          app.listen(port);
-         return app;
-    }
-    
-    var isDefined = function(v){
-        return (v != undefined) && !isNaN(v);
-    }
+     }
     
   
     

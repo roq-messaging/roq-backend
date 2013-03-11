@@ -7,7 +7,7 @@ module.exports = function setup(options, imports, register) {
     
     var init = function(){
 		
-         mapRoutes(web.getApp());
+        mapRoutes(web.getApp());
         
         register();
     }
