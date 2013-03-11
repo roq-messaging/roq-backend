@@ -1,10 +1,10 @@
 {
-    "name": "roq.webserver",
+    "name": "roq.web-core",
     "version": "0.0.1",
     "main": "main.js",
     "private": true,
     "plugin": {
         "consumes": [],
-        "provides": ["webserver"]
+        "provides": ["roq-web-core"]
     }
 }

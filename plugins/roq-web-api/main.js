@@ -1,51 +1,18 @@
-var express = require('express');
-var path = require('path');
 require('express-namespace');
 
 module.exports = function setup(options, imports, register) {
     var log = options.logger;
-    var appServer;
     var controller = imports['roq-controller'];
+    var web = imports['roq-web-core'];
     
     var init = function(){
-        startServer(    
-            appServer,
-            options.port || 3000,
-            options.enableConsole
-        );
+		
+         mapRoutes(web.getApp());
+        
         register();
     }
         
-    var startServer = function(app,port,enableConsole){
-         app = express();     
-         
-         //Parse request bodies
-         app.use(express.bodyParser());    
-         
-         // add cross-site requests headers
-         app.all('*',function(req,res,next){
-            res.set('Access-Control-Allow-Origin','*');
-            //Allow all verbs for RestFul API
-            res.set('Access-Control-Allow-Methods','POST, GET, PUT, DELETE, OPTIONS');
-            res.set('Access-Control-Allow-Headers','X-Requested-With, Content-Type');
-            next();
-         });
-         
-         // map API routes
-         mapRoutes(app);
-         
-         // the web interface
-         if(enableConsole)
-            mapWebConsoleRoutes(app);
-         
-         // catch-all for 404s (incompatible with express.static)
-         //app.get('*',function(req,res){res.send(404,'RoQ Web API: Nothing here.');});
-         
-         // empty response to OPTIONS
-         app.options('*',function(req,res){res.send();});
-         
-         app.listen(port);
-    }
+
     
     var isDefined = function(v){
         return (v != undefined) && !isNaN(v);
@@ -125,6 +92,7 @@ module.exports = function setup(options, imports, register) {
         };
     }
     
+
     var mapRoutes = function(app){
         app.namespace('/hosts',function(){
             app.get('/',function(req,res){
@@ -205,13 +173,6 @@ module.exports = function setup(options, imports, register) {
         
     }
 
-    var mapWebConsoleRoutes = function(app){
-        var theDir = path.join(__dirname,'../../roq-web-console/');
-        log.trace("Serving static files of "+theDir);
-        app.use('/',express.static(theDir));
-        
-    }
-    
     // everything is loaded, we can call the constructor
     init();
 }
