@@ -3,7 +3,7 @@
 // requires
 var launchHelper = require("./launcher.helper");
 
-var LAUNCH_LIST = ['webserver','web-api','cli','orchestrator']; 
+var LAUNCH_LIST = ['webserver','web','cli']; 
 var DEFAULT_APP_CONFIG = 'cli';
 
 var init = function(){
