@@ -117,21 +117,22 @@ module.exports = function setup(options, imports, register) {
                 
                 if( data.exchangesList && data.exchangesList.length){
                     var exd;
-                    console.log("\n\tTotProc\tProc\tTotThr\tThr\tProd\tMin\tName");
-                    console.log("\t-------------------------------------------------------------------------");
+                    //console.log("\n\tTotProc\tProc\tTotThr\tThr\tProd\tMin\tName");
+                    //console.log("\t-------------------------------------------------------------------------");
                     for(var i in data.exchangesList){
                         exd = data.exchanges[data.exchangesList[i]]; 
                         if(!exd.length)
                             console.log("\t"+data.exchangesList[i]);
                         else
                             console.log(""
-                                +"\t"+exd[0]['stats']['TotalProcessed']
-                                +"\t"+exd[0]['stats']['Processed']
-                                +"\t"+exd[0]['stats']['TotalThroughput']
-                                +"\t"+exd[0]['stats']['Throughput']
-                                +"\t"+exd[0]['stats']['Producers']
-                                +"\t"+exd[0]['stats']['Minute']
-                                +"\t"+data.exchangesList[i]
+                                +"\n\tExchange:"+data.exchangesList[i]
+                                +"\n\t------------------------------------------"
+                                +"\n\tTotalProcessed: "+exd[0]['stats']['TotalProcessed']
+                                +"\n\tProcessed: "+exd[0]['stats']['Processed']
+                                +"\n\tTotalThroughput: "+exd[0]['stats']['TotalThroughput']
+                                +"\n\tThroughput: "+exd[0]['stats']['Throughput']
+                                +"\n\tProducers: "+exd[0]['stats']['Producers']
+                                +"\n\tMinute: "+exd[0]['stats']['Minute']
                                 +"\n\tCPU: "+exd[0]['load']['CPU']
                                 +"\tMEM: "+exd[0]['load']['MEMORY']
                                 );
